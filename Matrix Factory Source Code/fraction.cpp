@@ -103,6 +103,27 @@ double fraction::GetValue(void)const
 	}
 }
 
+void fraction::SetValue(double val)
+{
+	numerator = 0;
+	denominator = 1;
+	value = val;
+	isApprox = true;
+	isSimplified = true;
+}
+
+fraction::operator int()const
+{
+	if (!isInt(*this))
+	{
+		return int(value);
+	}
+	else
+	{
+		return numerator;
+	}
+}
+
 
 bool operator==(const fraction& a,const fraction & b)
 {

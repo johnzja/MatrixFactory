@@ -2,6 +2,7 @@
 #include "ExpressionAnalyzer.h"
 
 #define DECIMAL_LENGTH 5
+#define Int int
 using namespace std;
 
 vector<fraction*> matArr;
@@ -216,15 +217,14 @@ fraction Convert_to_Fraction(const string& str,bool& Error)
 		}
 		else
 		{
-			ans.isApprox = true;
-			ans.isSimplified = true;
+
 			if (isNegative)
 			{
-				ans.value = -stod(Result_AbsValue);
+				ans.SetValue(-stod(Result_AbsValue));
 			}
 			else
 			{
-				ans.value = stod(Result_AbsValue);
+				ans.SetValue(stod(Result_AbsValue));
 			}
 		}
 		return ans;
@@ -396,19 +396,18 @@ void CalculateOnce(stack<fraction*>* stkopnd, stack<char>* stkoptr)
 				ans = A / B;
 				break;
 			case POW:
-				if (!(A_ptr->isApprox) && isInt(*B_ptr))
+				if (!(A_ptr->GetApprox()) && isInt(*B_ptr))//precise.
 				{
-					ans = pow(*A_ptr, B_ptr->numerator);
+					ans = pow(*A_ptr, int(*B_ptr));
 				}
 				else
 				{
-					ans.isSimplified = true;
-					ans.isApprox = true;
-					if (A.value <= 0)
+
+					if (A.GetValue() <= 0)
 					{
 						throw MATH_ERROR;
 					}
-					ans.value = pow(A.GetValue(), B.GetValue());
+					ans.SetValue(pow(A.GetValue(), B.GetValue()));
 				}
 
 				break;
@@ -461,15 +460,16 @@ void CalculateOnce(stack<fraction*>* stkopnd, stack<char>* stkoptr)
 			if (stkoptr->top() == POW)//A^2 , A^0 or A^(-1)
 			{
 				Matrix* A_This = A_ptr->GetThis();//Type:Matrix*
-				if (!(isInt(*B_ptr)) || B_ptr->numerator <-1||B_ptr->numerator==0) throw MATH_ERROR; 
-				if (B_ptr->numerator == -1)//A^(-1)
+				Int B_num = int(*B_ptr);
+				if (!(isInt(*B_ptr)) || B_num < -1 || B_num == 0) throw MATH_ERROR;
+				if (B_num == -1)//A^(-1)
 				{
 					*A_This = Ginverse(*A_This);
 				}
 				else
 				{
 					Matrix temp = *(A_This);
-					for (int i = 1;i < B_ptr->numerator;i++)//time Complexity=o(n)
+					for (int i = 1;i < B_num;i++)//time Complexity=o(n)
 					{
 						*A_This = (*(A_This))* temp;
 					}
@@ -483,7 +483,7 @@ void CalculateOnce(stack<fraction*>* stkopnd, stack<char>* stkoptr)
 			else if (stkoptr->top() == POW_EACH)//operator ^^
 			{
 				if (!isInt(*B_ptr)) { throw MATH_ERROR; }
-				int pow_n = B_ptr->numerator;
+				int pow_n = int(*B_ptr);
 
 				Matrix* A_this = A_ptr->GetThis();//Get the matrix ptr.
 				A_this->ValidityCheck();
@@ -531,20 +531,22 @@ fraction* Func(const string& cmd, fraction* data, bool& Error)
 	int data_type;
 	if (data == nullptr)data_type = 0;else data_type= data->GetType();
 	fraction* ans_ptr;//Answer pointer.
+	double val;
 	try
 	{
 		switch (data_type)
 		{
 		case 0://fraction
-			if (cmd == "sin") { ans_ptr=new fraction(sin(data->value)); }
-			else if (cmd == "cos") { ans_ptr = new fraction(cos(data->value)); }
-			else if (cmd == "tan") { ans_ptr = new fraction(tan(data->value)); }
-			else if (cmd == "ln") { ans_ptr = new fraction(log(data->value)); }
-			else if (cmd == "lg") { ans_ptr = new fraction(log(data->value) / log(10.0)); }
-			else if (cmd == "arcsin") { ans_ptr = new fraction(asin(data->value)); }
-			else if (cmd == "arccos") { ans_ptr = new fraction(acos(data->value)); }
-			else if (cmd == "arctan") { ans_ptr = new fraction(atan(data->value)); }
-			else if (cmd == "sqrt") { ans_ptr = new fraction(sqrt(data->value)); }
+			val = data->GetValue();
+			if (cmd == "sin") { ans_ptr=new fraction(sin(val)); }
+			else if (cmd == "cos") { ans_ptr = new fraction(cos(val)); }
+			else if (cmd == "tan") { ans_ptr = new fraction(tan(val)); }
+			else if (cmd == "ln") { ans_ptr = new fraction(log(val)); }
+			else if (cmd == "lg") { ans_ptr = new fraction(log(val) / log(10.0)); }
+			else if (cmd == "arcsin") { ans_ptr = new fraction(asin(val)); }
+			else if (cmd == "arccos") { ans_ptr = new fraction(acos(val)); }
+			else if (cmd == "arctan") { ans_ptr = new fraction(atan(val)); }
+			else if (cmd == "sqrt") { ans_ptr = new fraction(sqrt(val)); }
 			//else if (cmd == "cbrt") { ans_ptr= fraction(cbrt(data->value)); }
 			else if (cmd == "reciprocal") { ans_ptr = new fraction(reciprocal(*data)); }
 			else if (cmd == "pi") { ans_ptr = new fraction(PI); }

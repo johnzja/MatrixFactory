@@ -24,6 +24,8 @@ public:
 		value = 0.0;
 	}
 
+	operator int()const;
+
 	virtual fraction** GetPtr() { return nullptr; }
 	virtual int GetType()const { return 0; }
 	virtual Matrix* GetThis() { return nullptr; }
@@ -31,6 +33,8 @@ public:
 	virtual ~fraction(){}
 
 	double GetValue(void)const;
+	void SetValue(double val);
+	bool& GetApprox() { return isApprox; }
 
 	friend fraction simplify(const fraction& a);
 	friend bool operator==(const fraction& a, const fraction & b);
@@ -41,15 +45,12 @@ public:
 	friend fraction reciprocal(const fraction& a);
 	friend void displayFrac(const fraction& a, bool newline);
 	friend bool isInt(const fraction& frc);
-	friend fraction Convert_to_Fraction(const string& str, bool& Error);
-	friend void CalculateOnce(stack<fraction*>* stkopnd, stack<char>* stkoptr);
-	friend fraction* Func(const string& cmd, fraction* data, bool& Error);
+	//friend fraction Convert_to_Fraction(const string& str, bool& Error);
+	//void CalculateOnce(stack<fraction*>* stkopnd, stack<char>* stkoptr);
+	//friend fraction* Func(const string& cmd, fraction* data, bool& Error);
 
-
-	friend class Matrix;
 	friend ostream& operator<<(ostream& out, const Matrix& mat);
-	//friend Matrix inverse(const Matrix& mat);
-	//friend void defineMat(string& cmd, bool CheckValidity);
+
 
 
 

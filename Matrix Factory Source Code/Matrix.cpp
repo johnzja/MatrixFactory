@@ -342,7 +342,7 @@ Matrix inverse(const Matrix& mat)
 	fraction A = det(mat);	int n = mat.row;
 	Matrix InverseMatrix(n, n);
 
-	if (A == 0)
+	if (A == zero)
 	{
 		throw MATH_ERROR;
 		return Matrix();
