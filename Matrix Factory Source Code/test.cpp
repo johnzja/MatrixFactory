@@ -100,10 +100,10 @@ Matrix Eig(Matrix &A) {
 	Matrix R(A.GetRowCnt(), A.GetColCnt());
 	QR2(A, Q, R);
 	while (!isUpperTriangular(R*Q)) {
-		cout << (R*Q);
+		//cout << (R*Q);
 		QR2(R*Q, Q, R);
 	}
-	cout << (R*Q);
+	cout << (R*Q) << endl;
 	result = Matrix(A.GetRowCnt(), 1);
 	for (int i = 0; i < A.GetRowCnt(); i++) {
 		result.GetPtr()[i][0] = (Q*R).GetPtr()[i][i];
@@ -121,7 +121,15 @@ int main() {
 	cin >> column;
 	cout << "Input the matrix row by row: ";
 	Matrix A = InputMatrix(row, row);
-	cout << Eig(A);
+	Matrix B = Eig(A);
+	cout << B << endl;
+	for (int i = 0; i < B.GetRowCnt(); i++) {
+		Matrix D = (B.GetPtr()[i][0])*Identity(A.GetRowCnt());
+		cout << D << endl;
+		Matrix C = (A - D);
+		cout << C << endl;
+		cout << NullSpace(C) << endl;
+	}
 	/*Matrix Q = Matrix(row, row);
 	Matrix R = Matrix(row, column);
 	QR2(A, Q, R);
