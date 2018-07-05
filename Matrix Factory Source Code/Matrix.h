@@ -21,6 +21,7 @@ ostream& operator<<(ostream& out, const Matrix& mat);
 fraction det(const Matrix& mat);
 Matrix reduce(const Matrix& mat, int DeleteCol, int DeleteRow = 0);
 Matrix inverse(const Matrix& mat);
+Matrix adj(const Matrix &mat);
 Matrix operator*(const Matrix& mat1, const Matrix& mat2);
 Matrix operator*(const fraction& frc, const Matrix& mat);
 Matrix Transpose(const Matrix& mat);
@@ -58,6 +59,7 @@ class Matrix:public fraction
 	friend fraction det(const Matrix& mat);
 	friend Matrix reduce(const Matrix& mat, int DeleteCol, int DeleteRow );
 	friend Matrix inverse(const Matrix& mat);
+	friend Matrix adj(const Matrix&mat);
 	friend Matrix operator*(const Matrix& mat1, const Matrix& mat2);
 	friend Matrix operator*(const fraction& frc, const Matrix& mat);
 	friend Matrix Transpose(const Matrix& mat);

@@ -126,9 +126,21 @@ int main() {
 	for (int i = 0; i < B.GetRowCnt(); i++) {
 		Matrix D = (B.GetPtr()[i][0])*Identity(A.GetRowCnt());
 		cout << D << endl;
-		Matrix C = (A - D);
+		Matrix C = A - D;
 		cout << C << endl;
-		cout << NullSpace(C) << endl;
+		C = adj(C);
+		cout << C << endl;
+		Matrix x(B.GetRowCnt(), 1);
+		for (int j = 0; j < x.GetRowCnt(); j++) {
+			if (j == 0) x.GetPtr()[j][0] = 1;
+			else x.GetPtr()[j][0] = 0;
+		}
+		cout << x << endl;
+
+		for (int i = 0; i < 100; i++) {
+			x = ((fraction)1/((fraction)sqrt(InnerProduct(C*x, C*x).GetValue())))*(C*x);
+		}
+		cout << x;
 	}
 	/*Matrix Q = Matrix(row, row);
 	Matrix R = Matrix(row, column);

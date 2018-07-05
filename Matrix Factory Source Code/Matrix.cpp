@@ -373,7 +373,35 @@ Matrix inverse(const Matrix& mat)
 
 	return InverseMatrix;
 }
+Matrix adj(const Matrix& mat)
+{
+	if (mat.column != mat.row)throw MATH_ERROR;
+	mat.ValidityCheck();
+	int n = mat.row;
+	Matrix AdjugateMatrix(n, n);
+	if (mat.row == 1)
+	{
+		AdjugateMatrix.ptr[0][0] = 1;
+		return AdjugateMatrix;
+	}
 
+	for (int i = 0; i < n; i++)
+	{
+		for (int j = 0; j < n; j++)
+		{
+			if ((i + j) % 2 == 0)
+			{
+				AdjugateMatrix.ptr[j][i] = det(reduce(mat, j, i));
+			}
+			else
+			{
+				AdjugateMatrix.ptr[j][i] = -det(reduce(mat, j, i));
+			}
+		}
+	}
+
+	return AdjugateMatrix;
+}
 Matrix operator*(const Matrix& mat1, const Matrix& mat2)
 {
 	mat1.ValidityCheck();
