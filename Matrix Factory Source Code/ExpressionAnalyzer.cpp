@@ -530,7 +530,7 @@ fraction* Func(const string& cmd, fraction* data, bool& Error)
 {
 	int data_type;
 	if (data == nullptr)data_type = 0;else data_type= data->GetType();
-	fraction* ans_ptr;//Answer pointer.
+	fraction* ans_ptr=nullptr;//Answer pointer.
 	double val;
 	try
 	{
@@ -598,6 +598,7 @@ fraction* Func(const string& cmd, fraction* data, bool& Error)
 			delete data;
 			throw MATH_ERROR;
 		}
+	if (ans_ptr == nullptr)throw UNIDENT_ERROR;
 	return ans_ptr;
 }
 
