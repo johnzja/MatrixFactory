@@ -4,7 +4,7 @@
 using namespace std;
 
 //consts
-const int WIDTH =5;
+const int WIDTH =10;
 extern fraction zero;
 extern fraction one;
 
@@ -239,7 +239,20 @@ Matrix operator+(const Matrix& mat1, const Matrix& mat2)
 	}
 	return ans;
 }
-
+Matrix operator%(const Matrix& mat1, const Matrix& mat2) {
+	Matrix M(mat1.row + mat2.row, mat1.column + mat2.column);
+	for (int i = 0; i < mat1.row; i++) {
+		for (int j = 0; j < mat1.column; j++) {
+			M.ptr[i][j] = mat1.ptr[i][j];
+		}
+	}
+	for (int i = 0; i < mat2.row; i++) {
+		for (int j = 0; j < mat2.column; j++) {
+			M.ptr[(mat1.row + i)][(mat1.column + j)] = mat2.ptr[i][j];
+		}
+	}
+	return M;
+}
 Matrix operator-(const Matrix& mat)
 {
 	mat.ValidityCheck();
