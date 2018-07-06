@@ -16,7 +16,6 @@ Matrix InputMatrix(const int& row, const int& column);
 Matrix operator+(const Matrix& mat1, const Matrix& mat2);
 Matrix operator-(const Matrix& mat);
 Matrix operator-(const Matrix& mat1, const Matrix& mat2);
-Matrix operator%(const Matrix& mat1, const Matrix& mat2);
 bool operator==(const Matrix& mat1, const Matrix& mat2);
 ostream& operator<<(ostream& out, const Matrix& mat);
 fraction det(const Matrix& mat);
@@ -35,7 +34,6 @@ Matrix LeftNullSpace(const Matrix& mat);
 Matrix NullSpace(const Matrix& mat);
 
 //Additional functions
-Matrix GenSumMat(int);
 Matrix Identity(int);
 
 
@@ -63,7 +61,6 @@ class Matrix:public fraction
 	friend Matrix adj(const Matrix&mat);
 	friend Matrix operator*(const Matrix& mat1, const Matrix& mat2);
 	friend Matrix operator*(const fraction& frc, const Matrix& mat);
-	friend Matrix operator%(const Matrix& mat1, const Matrix& mat2);
 	friend Matrix Transpose(const Matrix& mat);
 	friend Matrix GaussEliminate(const Matrix& mat,int* rankptr,SelectArray** sarray);
 	friend fraction Gdet(const Matrix& mat);
