@@ -155,6 +155,8 @@ public:
 
 		Matrix GetRow(int Row);
 		Matrix GetColumn(int Column);
+		void ReplaceColumn(const Matrix& B, int pos_col);
+
 		int GetRowCnt()const { return row; }
 		int GetColCnt()const { return column; }
 		static int GetMatrixCnt() {return MatrixCount;}

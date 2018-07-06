@@ -373,6 +373,7 @@ Matrix inverse(const Matrix& mat)
 
 	return InverseMatrix;
 }
+
 Matrix adj(const Matrix& mat)
 {
 	if (mat.column != mat.row)throw MATH_ERROR;
@@ -402,6 +403,7 @@ Matrix adj(const Matrix& mat)
 
 	return AdjugateMatrix;
 }
+
 Matrix operator*(const Matrix& mat1, const Matrix& mat2)
 {
 	mat1.ValidityCheck();
@@ -797,6 +799,21 @@ int Matrix::rank()
 	Matrix temp = GaussEliminate(*this, &rank_value);
 	return rank_value;
 }
+
+void Matrix::ReplaceColumn(const Matrix& B, int pos_col)
+{
+	LineValidity(this, false, pos_col);
+	//Check if B is the required shape.
+	if (row != B.row)throw MATH_ERROR;
+	if (B.column != 1)throw MATH_ERROR;
+
+	for (int i = 0;i < row;i++)
+	{
+		ptr[i][pos_col] = B.ptr[i][0];
+	}
+	return;
+}
+
 
 Matrix Matrix::EigenEqu()
 {
