@@ -27,7 +27,7 @@ void init();
 void ClearMemoryTank();
 void ShowMemoryTank();
 
-char Edition[] = "2.1.13";//Version information.
+char Edition[] = "2.1.14";//Version information.
 int Matrix::MatrixCount = 0;//Initialize static member in class Matrix.
 
 
@@ -258,4 +258,5 @@ void ShowMemoryTank()
 	
 	//return;
 }
+//Test
 

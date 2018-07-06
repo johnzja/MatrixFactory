@@ -136,7 +136,7 @@ bool operator==(const fraction& a,const fraction & b)
 	}
 }
 
-bool isLessThanZero(const fraction& a)
+inline static bool isLessThanZero(const fraction& a)
 {
 	if (a.isApprox)
 	{
@@ -153,7 +153,6 @@ bool operator<(const fraction& a, const fraction& b)
 {
 	return isLessThanZero(a - b);
 }
-
 
 fraction operator+(const fraction& a, const fraction& b)
 {
@@ -243,7 +242,6 @@ void displayFrac(const fraction& a, bool newline)
 	if (a.isApprox == false)
 	{
 		if (a.denominator == 0)throw MATH_ERROR;
-		simplify(a);
 
 		if (a.numerator == 0)
 		{
