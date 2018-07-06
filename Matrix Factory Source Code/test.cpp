@@ -6,8 +6,14 @@ int Matrix::MatrixCount = 0;
 extern bool(*Clear)(int AnalyzeResult, bool initialize);
 
 fraction InnerProduct(Matrix &A, Matrix &B) {
+	if (A.GetColCnt() != 1 || B.GetColCnt() != 1) throw MAT_ERROR;
+	else if (A.GetRowCnt() != B.GetRowCnt()) throw MAT_ERROR;
 	Matrix C = Transpose(A)*B;
 	return C.GetPtr()[0][0];
+}
+fraction norm(Matrix& A) {
+	if (A.GetColCnt() != 1) throw MAT_ERROR;
+	return sqrt(InnerProduct(A, A).GetValue());
 }
 Matrix DirectSum(Matrix &M1, Matrix&M2) {
 	Matrix M(M1.GetRowCnt() + M2.GetRowCnt(), M1.GetColCnt() + M2.GetColCnt());
@@ -56,7 +62,7 @@ int QR(Matrix& A, Matrix& Q, Matrix& R) {
 		for (int j = 0; j < i; j++) {
 			cur = cur - InnerProduct(Q.GetColumn(j), cur)*(Q.GetColumn(j));
 		}
-		cur = (fraction)(1 / (sqrt((InnerProduct(cur, cur)).GetValue()))) * cur;
+		cur = reciprocal(norm(cur)) * cur;
 		for (int k = 0; k < Q.GetRowCnt(); k++) {
 			Q.GetPtr()[k][i] = cur.GetPtr()[k][0];
 		}
@@ -73,15 +79,10 @@ int QR2(Matrix &A, Matrix& Q, Matrix& R) {
 		//cout << v <<endl;
 		Matrix H(v.GetRowCnt(), v.GetRowCnt());
 		//cout << H << endl;
-		Matrix e1(v.GetRowCnt(), 1);
-		for (int j = 0; j < e1.GetRowCnt(); j++) {
-			if (j == 0) e1.GetPtr()[j][0] = 1;
-			else e1.GetPtr()[j][0] = 0;
-		}
+		Matrix e1 = Identity(v.GetRowCnt()).GetColumn(0);
 		//cout << e1 << endl;
-		Matrix u = (v - (fraction)(sqrt(InnerProduct(v, v).GetValue()))*e1);
-		//cout << u << endl;
-		u = (fraction)(1/sqrt(InnerProduct(u,u).GetValue()))*u;
+		Matrix u = (v - (norm(v))*e1);
+		if(norm(u) != (fraction)0) u = (reciprocal(norm(u)))*u;
 		//cout << u << endl;
 		H = Identity(v.GetRowCnt()) - ((fraction)2*u*Transpose(u));
 		//cout << H << endl;
@@ -94,8 +95,8 @@ int QR2(Matrix &A, Matrix& Q, Matrix& R) {
 	return 0;
 }
 Matrix Eig(Matrix &A) {
-	Matrix result;
-	if (A.GetColCnt() != A.GetRowCnt()) return result;
+	if (A.GetColCnt() != A.GetRowCnt()) throw MAT_ERROR;
+	else if (A.GetRowCnt() == 0) throw MAT_ERROR;
 	Matrix Q(A.GetRowCnt(), A.GetRowCnt());
 	Matrix R(A.GetRowCnt(), A.GetColCnt());
 	QR2(A, Q, R);
@@ -103,45 +104,46 @@ Matrix Eig(Matrix &A) {
 		//cout << (R*Q);
 		QR2(R*Q, Q, R);
 	}
-	cout << (R*Q) << endl;
-	result = Matrix(A.GetRowCnt(), 1);
+	//cout << (R*Q) << endl;
+	Matrix result = Matrix(A.GetRowCnt(), 1);
 	for (int i = 0; i < A.GetRowCnt(); i++) {
 		result.GetPtr()[i][0] = (Q*R).GetPtr()[i][i];
 	}
 	return result;
 }
+void EigV(Matrix& A) {
+	if (A.GetColCnt() != A.GetRowCnt()) throw MAT_ERROR;
+	else if (A.GetRowCnt() == 0) throw MAT_ERROR;
+	Matrix eigList = Eig(A);
+	cout << eigList << endl;
+	for (int i = 0; i < eigList.GetRowCnt(); i++) {
+		Matrix C = A - (eigList.GetPtr()[i][0])*Identity(A.GetRowCnt());
+		if (det(C) == (fraction)0) {
+			cout << C << endl;
+			cout << NullSpace(C) << endl;
+		}
+		else {
+			C = adj(C);
+			cout << C << endl;
+			Matrix tempEigV = Identity(C.GetRowCnt());
+			for (int i = 0; i < 100; i++) {
+				tempEigV = C * tempEigV;
+				for (int i = 0; i < tempEigV.GetRowCnt(); i++) tempEigV.ReplaceColumn(reciprocal(norm(tempEigV.GetColumn(i)))*tempEigV.GetColumn(i), i);
+			}
+			cout << tempEigV << endl;
+		}
+	}
+}
 
 int main() {
 	Clear = Analyze_Change;
 	int row, column;
-	cout << "Please Enter the size of the matrix you want to perform QR factorization." << endl;
-	cout << "Row: ";
+	cout << "Please Enter the size of the square matrix you want to get eigenvalues and eigenvectors." << endl;
+	cout << "Size: ";
 	cin >> row;
-	cout << "Column: ";
-	cin >> column;
 	cout << "Input the matrix row by row: ";
 	Matrix A = InputMatrix(row, row);
-	Matrix B = Eig(A);
-	cout << B << endl;
-	for (int i = 0; i < B.GetRowCnt(); i++) {
-		Matrix D = (B.GetPtr()[i][0])*Identity(A.GetRowCnt());
-		cout << D << endl;
-		Matrix C = A - D;
-		cout << C << endl;
-		C = adj(C);
-		cout << C << endl;
-		Matrix x(B.GetRowCnt(), 1);
-		for (int j = 0; j < x.GetRowCnt(); j++) {
-			if (j == 0) x.GetPtr()[j][0] = 1;
-			else x.GetPtr()[j][0] = 0;
-		}
-		cout << x << endl;
-
-		for (int i = 0; i < 100; i++) {
-			x = ((fraction)1/((fraction)sqrt(InnerProduct(C*x, C*x).GetValue())))*(C*x);
-		}
-		cout << x;
-	}
+	EigV(A);
 	/*Matrix Q = Matrix(row, row);
 	Matrix R = Matrix(row, column);
 	QR2(A, Q, R);

@@ -132,7 +132,7 @@ bool operator==(const fraction& a,const fraction & b)
 	if (c.isApprox == false && d.isApprox == false) return c.denominator == d.denominator && c.numerator == d.numerator;
 	else
 	{
-		return (c.value - d.value) < precision;
+		return abs(c.value - d.value) < precision;
 	}
 }
 
