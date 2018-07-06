@@ -559,6 +559,7 @@ Matrix Matrix::GetColumn(int Column)
 	return ans;
 }
 
+
 Matrix GaussEliminate(const Matrix& mat,int* rankptr,SelectArray** sarray)
 {
 	mat.ValidityCheck();
@@ -826,6 +827,7 @@ void Matrix::ReplaceColumn(const Matrix& B, int pos_col)
 	return;
 }
 
+
 Matrix Matrix::EigenEqu()
 {
 	//Check.
@@ -919,3 +921,22 @@ Matrix Identity(int n)
 
 //DIY functions/Special operations.
 
+Matrix GenSumMat(int n)
+{
+	Matrix ans = Identity(n);
+	fraction** mat_ptr = ans.GetPtr();
+	
+	for (int i = 1;i < n;i++)//i-th row.
+	{
+		for (int j = 0;j < i;j++)
+		{
+			fraction temp = zero;
+			for (int k = 0;k <= j;k++)
+			{
+				temp = temp + mat_ptr[i - j - 1][k];
+			}
+			mat_ptr[i][j] = temp;
+		}
+	}
+	return ans;
+}

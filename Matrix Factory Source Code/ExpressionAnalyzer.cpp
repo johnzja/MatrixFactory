@@ -328,7 +328,6 @@ void ClearOpndStack(stack<fraction*>* stkopnd)
 
 void CalculateOnce(stack<fraction*>* stkopnd, stack<char>* stkoptr)
 {
-
 	fraction* B_ptr = stkopnd->top();stkopnd->pop();//Ensure the uniqueness of the pointer. Don`t forget to delete it.
 	if (stkopnd->empty())
 	{
@@ -538,37 +537,33 @@ fraction* Func(const string& cmd, fraction* data, bool& Error)
 		switch (data_type)
 		{
 		case 0://fraction
-			 if (cmd == "pi") { ans_ptr = new fraction(PI); }
+			val = data->GetValue();
+			if (cmd == "sin") { ans_ptr=new fraction(sin(val)); }
+			else if (cmd == "cos") { ans_ptr = new fraction(cos(val)); }
+			else if (cmd == "tan") { ans_ptr = new fraction(tan(val)); }
+			else if (cmd == "ln") { ans_ptr = new fraction(log(val)); }
+			else if (cmd == "lg") { ans_ptr = new fraction(log(val) / log(10.0)); }
+			else if (cmd == "arcsin") { ans_ptr = new fraction(asin(val)); }
+			else if (cmd == "arccos") { ans_ptr = new fraction(acos(val)); }
+			else if (cmd == "arctan") { ans_ptr = new fraction(atan(val)); }
+			else if (cmd == "sqrt") { ans_ptr = new fraction(sqrt(val)); }
+			//else if (cmd == "cbrt") { ans_ptr= fraction(cbrt(data->value)); }
+			else if (cmd == "reciprocal") { ans_ptr = new fraction(reciprocal(*data)); }
+			else if (cmd == "pi") { ans_ptr = new fraction(PI); }
 			else if (cmd == "e") { ans_ptr = new fraction(EULER_NUM); }//consts
+
+			else if (cmd == "ans")
+			{
+				if (is_prev_mat)ans_ptr = new Matrix(prev_ans_mat);
+				else ans_ptr = new fraction(prev_ans_frac);
+			}
 			else
 			{
-				val = data->GetValue();
-				if (cmd == "sin") { ans_ptr = new fraction(sin(val)); }
-				else if (cmd == "cos") { ans_ptr = new fraction(cos(val)); }
-				else if (cmd == "tan") { ans_ptr = new fraction(tan(val)); }
-				else if (cmd == "ln") { ans_ptr = new fraction(log(val)); }
-				else if (cmd == "lg") { ans_ptr = new fraction(log(val) / log(10.0)); }
-				else if (cmd == "arcsin") { ans_ptr = new fraction(asin(val)); }
-				else if (cmd == "arccos") { ans_ptr = new fraction(acos(val)); }
-				else if (cmd == "arctan") { ans_ptr = new fraction(atan(val)); }
-				else if (cmd == "sqrt") { ans_ptr = new fraction(sqrt(val)); }
-				//else if (cmd == "cbrt") { ans_ptr= fraction(cbrt(data->value)); }
-				else if (cmd == "reciprocal") { ans_ptr = new fraction(reciprocal(*data)); }
-				else if (cmd == "pi") { ans_ptr = new fraction(PI); }
-				else if (cmd == "e") { ans_ptr = new fraction(EULER_NUM); }//consts
-				else if (cmd == "ans")
-				{
-					if (is_prev_mat)ans_ptr = new Matrix(prev_ans_mat);
-					else ans_ptr = new fraction(prev_ans_frac);
-				}
-				else
-				{
-					Error = true;
-					delete data;
-					return nullptr;//Will memory Leak? No!
-				}
+				Error = true;
+				delete data;
+				return nullptr;//Will memory Leak? No!
 			}
-			delete data;//delete a null pointer is valid.
+			delete data;
 			break;
 
 		case 1://Matrix
@@ -639,7 +634,6 @@ fraction* MatMap(const string& matName)//return pointer of the desired operand i
 
 fraction* Calculate(string expr)
 {
-
 	static int depth = 0;
 	(*Clear)(0, true);//Initialize the character analyzer.
 	if (depth ==0)
