@@ -34,7 +34,6 @@ Matrix LeftNullSpace(const Matrix& mat);
 Matrix NullSpace(const Matrix& mat);
 
 //Additional functions
-Matrix GenSumMat(int);
 Matrix Identity(int);
 
 
