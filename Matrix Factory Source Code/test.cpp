@@ -86,7 +86,7 @@ int QR2(Matrix &A, Matrix& Q, Matrix& R) {
 		//cout << u << endl;
 		H = Identity(v.GetRowCnt()) - ((fraction)2*u*Transpose(u));
 		//cout << H << endl;
-		if(i>0) H = DirectSum(Identity(i), H);
+		if(i>0) H = Identity(i) % H;
 		//cout << H << endl;
 		R = H * R;
 		//cout << R << endl;
