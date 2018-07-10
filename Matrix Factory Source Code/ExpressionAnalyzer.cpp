@@ -470,7 +470,7 @@ void CalculateOnce(stack<fraction*>* stkopnd, stack<char>* stkoptr)
 				else
 				{
 					Matrix temp = *(A_This);
-					for (int i = 1;i < B_num;i++)//time Complexity=o(n)
+					for (int i = 1;i < B_num;i++)//time Complexity=O(n)
 					{
 						*A_This = (*(A_This))* temp;
 					}

@@ -261,11 +261,7 @@ void displayFrac(const fraction& a, bool newline)
 	}
 	else
 	{
-		if (abs(a.value) < precision)cout << 0;
-		else
-		{
-			cout << a.value;
-		}
+		cout << a.value;
 	}
 
 	if (newline)

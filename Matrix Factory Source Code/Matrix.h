@@ -65,7 +65,6 @@ class Matrix:public fraction
 	friend Matrix operator*(const fraction& frc, const Matrix& mat);
 	friend Matrix operator%(const Matrix& mat1, const Matrix& mat2);
 
-
 	friend Matrix Transpose(const Matrix& mat);
 	friend Matrix GaussEliminate(const Matrix& mat,int* rankptr,SelectArray** sarray);
 	friend fraction Gdet(const Matrix& mat);
