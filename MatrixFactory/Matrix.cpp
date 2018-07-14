@@ -1,71 +1,76 @@
 #include "stdafx.h"
-#include "Matrix.h"
-#include "ExpressionAnalyzer.h"
-using namespace std;
+#include "Math.h"
 
-//consts
-const int WIDTH =5;
-extern fraction zero;
-extern fraction one;
+extern const fraction frc_zero;
+extern const fraction frc_one;
+extern const double precision;
 
+extern const char* _Matrix_Math_Error;
+extern const char* _Matrix_Size_Error;
+extern const char* _Matrix_Pointer_Corrupted;
 
-int GetNumLength(int& n)
-{
-	int i = 1;
-	int absnum = abs(n);
-
-	while ((absnum / 10) != 0)
-	{
-		absnum = absnum / 10;
-		i++;
-	}
-	if (n < 0)i++;
-	return i;
-
-}
-
-inline void displaydecimal(ostream& ost, double data, int width)
-{
-	ost.width(width);
-	int prec = width - 1;
-
-	if (-1 < data&& data < 1)prec--;
-	if (data < 0)prec--;
-
-	ost.precision(prec);
-	ost << data;
-	return;
-}
-//Private functions
-void LineValidity(const Matrix* ptr_This, bool isRow , int lineA,int lineB = -1)
+static void LineValidity(const Matrix* ptr_This, bool isRow, int lineA, int lineB = -1)
 {
 	if (lineB != -1)//Check B
 	{
 		if (isRow)//Row
 		{
-			if (lineB < 0 || lineB >= (ptr_This->GetRowCnt()))throw UNIDENT_ERROR;
+			if (lineB < 0 || lineB >= (ptr_This->GetRowCnt()))throw Exceptions(_Matrix_Size_Error);
 		}
 		else//Column
 		{
-			if (lineB < 0 || lineB >= (ptr_This->GetColCnt()))throw UNIDENT_ERROR;
+			if (lineB < 0 || lineB >= (ptr_This->GetColCnt()))throw Exceptions(_Matrix_Size_Error);
 		}
 	}
 	if (isRow)//isRow==true
 	{
 
-		if (lineA< 0 || lineA >= (ptr_This->GetRowCnt()))throw UNIDENT_ERROR;
+		if (lineA< 0 || lineA >= (ptr_This->GetRowCnt()))throw Exceptions(_Matrix_Size_Error);
 	}
 	else
 	{
-		if (lineA< 0 || lineA >= (ptr_This->GetColCnt()))throw UNIDENT_ERROR;
+		if (lineA< 0 || lineA >= (ptr_This->GetColCnt()))throw Exceptions(_Matrix_Size_Error);
 	}
 
 	return;
 }
-//&&&&&&&&&&&&**********************&&&&&&&&&&&&&&&&&&&&
+
+bool Matrix::ValidityCheck()const
+{
+	if (column <= 0 || row <= 0 || ptr == nullptr)throw Exceptions(_Matrix_Size_Error);
+	return true;
+}
+
+Matrix::Matrix(const Matrix& mat) :row(mat.row), column(mat.column)//the Copy Constructor includes simplification
+{
+	if (mat.row <= 0 || mat.column <= 0 || mat.ptr == nullptr)
+	{
+		row = 0;
+		column = 0;
+		ptr = nullptr;
+		MatrixCount++;
+		return;
+	}
+
+	ptr = new Math*[row];
+	fraction* temp_ptr;
+
+	for (int i = 0;i < row;i++)
+	{
+		ptr[i] = (Math*)new fraction[column];
+		for (int j = 0;j < column;j++)
+		{
+			if ((temp_ptr = (dynamic_cast<fraction*>(mat.ptr[i]) + j)) == nullptr)throw Exceptions(_Matrix_Pointer_Corrupted);//Problems here.
+			*(dynamic_cast<fraction*>(ptr[i]) + j) = simplify(*temp_ptr);
+		}
+	}
+	MatrixCount++;
+}
+
+
 Matrix& Matrix::operator=(const Matrix& mat)
 {
-	if (mat.column <= 0|| mat.row<=0 || mat.ptr==nullptr)
+	if (mat.column <= 0 || mat.row <= 0 || mat.ptr == nullptr)
 	{
 		this->column = 0;
 		this->row = 0;
@@ -73,15 +78,17 @@ Matrix& Matrix::operator=(const Matrix& mat)
 		return *this;
 	}//a void matrix.
 
-	if (this != &mat)
+	if (this != &mat)//Two different matrices.
 	{
-		if (row == mat.row && column == mat.column )//If the two matrices are of the same size, then copy the data directly.
+		fraction* temp_ptr;
+		if (row == mat.row && column == mat.column)//If the two matrices are of the same size, then copy the data directly.
 		{
 			for (int i = 0;i < row;i++)
 			{
 				for (int j = 0;j < column;j++)
 				{
-					ptr[i][j] = simplify(mat.ptr[i][j]);
+					if ((temp_ptr = dynamic_cast<fraction*>(&mat.ptr[i][j])) == nullptr)throw Exceptions(_Matrix_Pointer_Corrupted);
+					*temp_ptr = simplify(*temp_ptr);
 				}
 			}
 		}
@@ -89,152 +96,68 @@ Matrix& Matrix::operator=(const Matrix& mat)
 		{
 			if (this->ptr != nullptr)
 			{
-				for (int i = 0;i < row;i++)//删除原指针指向内容  
+				for (int i = 0;i < row;i++)//delete the old contents.
 				{
-					delete[] ptr[i];
+					delete[] dynamic_cast<fraction*>(ptr[i]);
 				}
 				delete[] ptr;
 			}
-			row = mat.row; //复制常规成员  
+			row = mat.row; //copy normal data members
 			column = mat.column;
 
-			fraction**temp = new fraction*[row];     //复制指针指向的内容   
+			Math**temp = new Math*[row];    //复制指针指向的内容   
 			for (int i = 0;i < row;i++)
 			{
-				temp[i] = new fraction[column];
-				memcpy(temp[i], mat.ptr[i], column * sizeof(fraction));
+				ptr[i] = (Math*)new fraction[column];
+				for (int j = 0;j < column;j++)
+				{
+					if ((temp_ptr = (dynamic_cast<fraction*>(mat.ptr[i]) + j)) == nullptr)throw Exceptions(_Matrix_Pointer_Corrupted);//Problems here.
+					*(dynamic_cast<fraction*>(ptr[i]) + j) = simplify(*temp_ptr);
+				}
 			}
-			
-			ptr = temp;    //建立新指向  
+
+			ptr = temp;   //建立新指向  
 		}
 	}
 	return *this;
 }
 
-Matrix InputMatrix(const int& row, const int& column)
+fraction& Matrix::operator()(int i, int j)const
 {
-	if (row <= 0 || column <= 0)throw MATH_ERROR;
-	Matrix A(row, column);
-	int i = 0;
-	int  j = 0;
-	string temp;
-	fraction* Tmp_Calculation;
-
-	for (i = 0;i < row;i++)
-	{
-		for (j = 0;j < column;j++)
-		{
-			cin >> temp;
-			Tmp_Calculation=Calculate(temp);
-			A.ptr[i][j] = *Tmp_Calculation;
-			delete Tmp_Calculation;
-		}
-	}
-
-	return A;
-
+	LineValidity(this, true, i);
+	LineValidity(this, false, j);
+	//cout << dynamic_cast<fraction*>(ptr[i]) << endl;//What??!! protected inherit is dangerous
+	return *(dynamic_cast<fraction*>(ptr[i]) + j);
 }
 
-//double output supproted.
-ostream& operator<<(ostream& out, const Matrix& mat)//It`s possible to display a blank matrix.
+ostream& operator<<(ostream& ostr, const Matrix& mat)
 {
-	if (mat.row <= 0 || mat.column <= 0 || mat.ptr==nullptr)
+	int row = mat.GetRowCnt();
+	int col = mat.GetColCnt();
+	for (int i = 0;i < row;i++)
 	{
-		throw MAT_ERROR;
-		return out;
-	}
-
-	int i, j;
-
-	int maxlenall = WIDTH;
-	int maxlen = WIDTH;
-
-	fraction** ptrt = new fraction*[mat.row];//Initialize the length memory.
-	for (i = 0;i < mat.row;i++)
-	{
-		ptrt[i] = new fraction[mat.column];
-	}
-
-	bool isAllint = true;
-
-	for (i = 0;i < mat.row;i++)
-	{
-		for (j = 0;j < mat.column;j++)
+		for (int j = 0;j < col;j++)
 		{
-			if (mat.ptr[i][j].denominator != 1||mat.ptr[i][j].isApprox==true)isAllint = false;
-			if (mat.ptr[i][j].isApprox == false)//precise number(a fraction).
-			{
-				ptrt[i][j].numerator = GetNumLength(mat.ptr[i][j].numerator);
-				ptrt[i][j].denominator = GetNumLength(mat.ptr[i][j].denominator);
-
-				maxlen = (maxlen < ptrt[i][j].numerator + 2) ? (ptrt[i][j].numerator + 2) : maxlen;
-				maxlenall = (maxlenall < ptrt[i][j].numerator + ptrt[i][j].denominator + 3) ? (ptrt[i][j].numerator + ptrt[i][j].denominator + 3) : maxlenall;
-			}
+			ostr << mat(i, j) << "   ";
 		}
+		ostr << endl;
 	}
-
-
-	for (i = 0;i < mat.row;i++)
-	{
-		out << "[";
-		for (j = 0;j < mat.column;j++)
-		{
-			if (mat.ptr[i][j].isApprox == false)
-			{
-				if (isAllint)
-				{
-					out.width(maxlen);
-					out << mat.ptr[i][j].numerator;
-				}
-				else
-				{
-					if (mat.ptr[i][j].denominator != 1)
-					{
-						out.width(maxlenall - 1 - ptrt[i][j].denominator);
-						out << mat.ptr[i][j].numerator;
-						out << "/";
-						out.width(ptrt[i][j].denominator);
-						out << mat.ptr[i][j].denominator;
-					}
-					else
-					{
-						out.width(maxlenall);
-						out << mat.ptr[i][j].numerator;
-					}
-
-				}
-			}
-			else
-			{
-				out << " ";
-				displaydecimal(out, mat.ptr[i][j].value, maxlenall - 1);
-			}
-		}
-		out << " ]" << endl;
-	}
-
-	for (i = 0;i < mat.row;i++)//Release the resources required above
-	{
-		delete[] ptrt[i];
-	}
-	delete[] ptrt;
-
-	return out;
+	return ostr;
 }
 
 Matrix operator+(const Matrix& mat1, const Matrix& mat2)
 {
 	mat1.ValidityCheck();
 	mat2.ValidityCheck();
-	if (mat1.column != mat2.column || mat1.row != mat2.row)throw MATH_ERROR;
-	
+	if (mat1.column != mat2.column || mat1.row != mat2.row)throw Exceptions(_Matrix_Math_Error);
+
 	Matrix ans(mat1.row, mat1.column);
 
 	for (int i = 0;i < ans.row;i++)
 	{
 		for (int j = 0;j < ans.column;j++)
 		{
-			ans.ptr[i][j] = mat1.ptr[i][j] + mat2.ptr[i][j];
+			ans(i, j) = mat1(i, j) + mat2(i, j);
 		}
 	}
 	return ans;
@@ -248,7 +171,7 @@ Matrix operator-(const Matrix& mat)
 	{
 		for (int j = 0;j < mat.column;j++)
 		{
-			ans.ptr[i][j] = -mat.ptr[i][j];
+			ans(i, j) = -mat(i, j);
 		}
 	}
 	return ans;
@@ -256,7 +179,20 @@ Matrix operator-(const Matrix& mat)
 
 Matrix operator-(const Matrix& mat1, const Matrix& mat2)
 {
-	return mat1 + (-mat2);
+	mat1.ValidityCheck();
+	mat2.ValidityCheck();
+	if (mat1.column != mat2.column || mat1.row != mat2.row)throw Exceptions(_Matrix_Math_Error);
+
+	Matrix ans(mat1.row, mat1.column);
+
+	for (int i = 0;i < ans.row;i++)
+	{
+		for (int j = 0;j < ans.column;j++)
+		{
+			ans(i, j) = mat1(i, j) - mat2(i, j);
+		}
+	}
+	return ans;
 }
 
 bool operator==(const Matrix& mat1, const Matrix& mat2)
@@ -269,18 +205,23 @@ bool operator==(const Matrix& mat1, const Matrix& mat2)
 	{
 		for (int j = 0;j < mat1.column;j++)
 		{
-			if (mat1.ptr[i][j] != mat2.ptr[i][j])return false;
+			if (!(mat1(i, j) == mat2(i, j)))return false;
 		}
 	}
 	return true;
-
 }
+
+bool operator!=(const Matrix& mat1, const Matrix& mat2)
+{
+	return !(mat1 == mat2);
+}
+
 
 Matrix reduce(const Matrix& mat, int DeleteCol, int DeleteRow)
 {
 	mat.ValidityCheck();
-	if(!(DeleteCol >= 0 && DeleteCol < mat.column)||
-		!(DeleteRow >= 0 && DeleteRow < mat.row))throw MAT_ERROR;
+	LineValidity(&mat, true, DeleteRow);
+	LineValidity(&mat, false, DeleteCol);
 
 	Matrix ans(mat.row - 1, mat.column - 1);
 	int i = 0;int j = 0;
@@ -288,71 +229,62 @@ Matrix reduce(const Matrix& mat, int DeleteCol, int DeleteRow)
 
 	for (i = 0;i < mat.row;i++)
 	{
-		if (i  == DeleteRow) continue;
+		if (i == DeleteRow) continue;
 		for (j = 0;j < mat.column;j++)
 		{
-			if (j  == DeleteCol) continue;
-			ans.ptr[a][b] = mat.ptr[i][j];
+			if (j == DeleteCol) continue;
+			ans(a, b) = mat(i, j);
 			b++;
 		}
 		b = 0;
 		a++;
 	}
-
 	return ans;
 }
 
 fraction det(const Matrix& mat)
 {
-	if (mat.column != mat.row)throw MATH_ERROR;
+	if (mat.column != mat.row)throw Exceptions(_Matrix_Size_Error);
 	mat.ValidityCheck();
 
 	switch (mat.row)
 	{
 	case 1:
-		return mat.ptr[0][0];
-		break;
+		return mat(0, 0);break;
 	case 2:
-		return mat.ptr[0][0] * mat.ptr[1][1] - mat.ptr[0][1] * mat.ptr[1][0];
-		break;
-
+		return mat(0, 0)* mat(1, 1) - mat(0, 1) * mat(1, 0);		break;
 	default:
-		fraction sum(0);
+		fraction sum = frc_zero;
 		for (int i = 0;i < mat.row;i++)
 		{
 			if (i % 2 == 0)
 			{
-				sum = mat.ptr[0][i] * det(reduce(mat, i)) + sum;
+				sum += mat(0, i) * det(reduce(mat, i));
 			}
 			else
 			{
-				sum = sum - mat.ptr[0][i] * det(reduce(mat, i));
+				sum -= mat(0, i) * det(reduce(mat, i));
 			}
 		}
 		return sum;
-		break;
-
 	}
 }
 
 Matrix inverse(const Matrix& mat)
 {
-	if (mat.column != mat.row)throw MATH_ERROR;
+	if (mat.column != mat.row)throw Exceptions(_Matrix_Size_Error);
 	mat.ValidityCheck();
 	fraction A = det(mat);	int n = mat.row;
 	Matrix InverseMatrix(n, n);
 
-	if (A == zero)
-	{
-		throw MATH_ERROR;
-		return Matrix();
-	}
+	if (A == frc_zero)
+		throw Exceptions(_Matrix_Math_Error);
 
 	fraction B = reciprocal(A);
 
 	if (mat.row == 1)
 	{
-		InverseMatrix.ptr[0][0] = B;
+		InverseMatrix(0, 0) = B;
 		return InverseMatrix;
 	}
 
@@ -362,27 +294,27 @@ Matrix inverse(const Matrix& mat)
 		{
 			if ((i + j) % 2 == 0)
 			{
-				InverseMatrix.ptr[j][i] = B*det(reduce(mat, j, i));
+				InverseMatrix(j, i) = B * det(reduce(mat, j, i));
 			}
 			else
 			{
-				InverseMatrix.ptr[j][i] = -B*det(reduce(mat, j, i));
+				InverseMatrix(j, i) = -B * det(reduce(mat, j, i));
 			}
 		}
 	}
-
 	return InverseMatrix;
 }
 
 Matrix adj(const Matrix& mat)
 {
-	if (mat.column != mat.row)throw MATH_ERROR;
+	if (mat.column != mat.row)throw Exceptions(_Matrix_Size_Error);
 	mat.ValidityCheck();
+
 	int n = mat.row;
 	Matrix AdjugateMatrix(n, n);
 	if (mat.row == 1)
 	{
-		AdjugateMatrix.ptr[0][0] = 1;
+		AdjugateMatrix(0, 0) = frc_one;
 		return AdjugateMatrix;
 	}
 
@@ -392,11 +324,11 @@ Matrix adj(const Matrix& mat)
 		{
 			if ((i + j) % 2 == 0)
 			{
-				AdjugateMatrix.ptr[j][i] = det(reduce(mat, j, i));
+				AdjugateMatrix(j, i) = det(reduce(mat, j, i));
 			}
 			else
 			{
-				AdjugateMatrix.ptr[j][i] = -det(reduce(mat, j, i));
+				AdjugateMatrix(j, i) = -det(reduce(mat, j, i));
 			}
 		}
 	}
@@ -408,24 +340,24 @@ Matrix operator*(const Matrix& mat1, const Matrix& mat2)
 {
 	mat1.ValidityCheck();
 	mat2.ValidityCheck();
-	if (mat1.column != mat2.row)throw MATH_ERROR;
+	if (mat1.column != mat2.row)throw Exceptions(_Matrix_Size_Error);
 
 	Matrix ans(mat1.row, mat2.column);
-	fraction temp = zero;
+	fraction temp = frc_zero;
+
 	for (int i = 0;i < mat1.row;i++)
 	{
 		for (int j = 0;j < mat2.column;j++)
 		{
 			for (int k = 0;k < mat1.column;k++)
 			{
-				temp = temp + mat1.ptr[i][k] * mat2.ptr[k][j];
+				temp = temp + mat1(i, k) * mat2(k, j);
 			}
-			ans.ptr[i][j] = temp;
-			temp = zero;
+			ans(i, j) = temp;
+			temp = frc_zero;
 		}
 	}
 	return ans;
-
 }
 
 Matrix operator*(const fraction& frc, const Matrix& mat)
@@ -436,7 +368,7 @@ Matrix operator*(const fraction& frc, const Matrix& mat)
 	{
 		for (int j = 0;j < mat.column;j++)
 		{
-			ans.ptr[i][j] = frc*mat.ptr[i][j];
+			ans(i, j) = frc * mat(i, j);
 		}
 	}
 	return ans;
@@ -445,16 +377,18 @@ Matrix operator*(const fraction& frc, const Matrix& mat)
 Matrix operator%(const Matrix& mat1, const Matrix& mat2)
 {
 	Matrix M(mat1.row + mat2.row, mat1.column + mat2.column);
-	for (int i = 0; i < mat1.row; i++) 
+	for (int i = 0; i < mat1.row; i++)
 	{
-		for (int j = 0; j < mat1.column; j++) 
+		for (int j = 0; j < mat1.column; j++)
 		{
-			M.ptr[i][j] = mat1.ptr[i][j];
+			M(i, j) = mat1(i, j);
 		}
 	}
-	for (int i = 0; i < mat2.row; i++) {
-		for (int j = 0; j < mat2.column; j++) {
-			M.ptr[(mat1.row + i)][(mat1.column + j)] = mat2.ptr[i][j];
+	for (int i = 0; i < mat2.row; i++) 
+	{
+		for (int j = 0; j < mat2.column; j++) 
+		{
+			M(mat1.row + i, mat1.column + j) = mat2(i, j);
 		}
 	}
 	return M;
@@ -468,7 +402,7 @@ Matrix Transpose(const Matrix& mat)
 	{
 		for (int j = 0;j < mat.column;j++)
 		{
-			ans.ptr[j][i] = mat.ptr[i][j];
+			ans(j, i) = mat(i, j);
 		}
 	}
 	return ans;
@@ -477,61 +411,61 @@ Matrix Transpose(const Matrix& mat)
 void Matrix::swap(int lineA, int lineB)
 {
 	LineValidity(this, true, lineA, lineB);
-	fraction* temp = ptr[lineB];
+	Math* temp = ptr[lineB];//Swap the pointers.
 	ptr[lineB] = ptr[lineA];
 	ptr[lineA] = temp;
 	return;
 }
 
-void Matrix::add(int lineA, int lineB, fraction rate)
+void Matrix::add(int lineA, int lineB, const fraction& rate)
 {
 	LineValidity(this, true, lineA, lineB);
-	for (int j= 0;j < column;j++)
+	for (int j = 0;j < column;j++)
 	{
-		ptr[lineB][j] = rate*ptr[lineA][j] + ptr[lineB][j];
+		this->operator()(lineB, j) = rate * this->operator()(lineA, j) + this->operator()(lineB, j);
 	}
 	return;
 }
 
-void Matrix::mult(int line, fraction rate)
+void Matrix::mult(int line, const fraction& rate)
 {
 	LineValidity(this, true, line);
 	for (int j = 0;j < column;j++)
 	{
-		ptr[line][j] = rate*ptr[line][j];
+		(this->operator()(line, j)) *= rate;
 	}
 	return;
 }
 
-void Matrix::col_swap(int lineA, int lineB)
+void Matrix::col_swap(int lineA, int lineB)//swap two columns.
 {
 	LineValidity(this, false, lineA, lineB);
-	fraction temp;
+	fraction temp;//Initialize as zero.
 	for (int i = 0;i < row; i++)
 	{
-		temp = ptr[i][lineA];
-		ptr[i][lineA] = ptr[i][lineB];
-		ptr[i][lineB] = temp;
+		temp = this->operator()(i, lineA);
+		this->operator()(i, lineA) = this->operator()(i, lineB);
+		this->operator()(i, lineB) = temp;
 	}
 	return;
 }
 
-void Matrix::col_add(int lineA, int lineB, fraction rate)
+void Matrix::col_add(int lineA, int lineB, const fraction& rate)
 {
 	LineValidity(this, false, lineA, lineB);
 	for (int i = 0;i < row;i++)
 	{
-		ptr[i][lineB] = ptr[i][lineB] + ptr[i][lineA] * rate;
+		this->operator()(i, lineB) += this->operator()(i, lineA)* rate;
 	}
 	return;
 }
 
-void Matrix::col_mult(int line, fraction rate)
+void Matrix::col_mult(int line, const fraction& rate)
 {
 	LineValidity(this, false, line);
 	for (int i = 0;i < row;i++)
 	{
-		ptr[i][line] = rate*ptr[i][line];
+		this->operator()(i, line) *= rate;
 	}
 	return;
 }
@@ -545,32 +479,30 @@ Matrix Matrix::GetRow(int Row)
 	Matrix ans(1, column);
 	for (int j = 0;j < column;j++)
 	{
-		ans.ptr[0][j] = ptr[Row][j];	//Copy the data.
+		this->operator()(0, j) = this->operator()(Row, j);	//Copy the data.
 	}
-
 	return ans;
 }
 
 Matrix Matrix::GetColumn(int Column)
 {
-	LineValidity(this,false,Column);//Check if the variable Row is legal.
+	LineValidity(this, false, Column);//Check if the variable Row is legal.
 
 	Matrix ans(row, 1);
 	for (int i = 0;i < row;i++)
 	{
-		ans.ptr[i][0] = ptr[i][Column];
+		this->operator()(i, 0) = this->operator()(i, 0);	//Copy the data.
 	}
-
 	return ans;
 }
 
-Matrix GaussEliminate(const Matrix& mat,int* rankptr,SelectArray** sarray)
+Matrix GaussEliminate(const Matrix& mat, int* rankptr, SelectArray** sarray)
 {
 	mat.ValidityCheck();
 	Matrix ans(mat);
 	int i = 0;
 
-	bool NeedToSelect = false;//Select what?
+	bool NeedToSelect = false;//SelectArray.
 	if (sarray != nullptr)
 	{
 		*sarray = new SelectArray(mat.column);
@@ -582,33 +514,34 @@ Matrix GaussEliminate(const Matrix& mat,int* rankptr,SelectArray** sarray)
 	{
 		int temp_maxNumPos = -1;
 		double temp_maxNumAbs = 0.0;
+		double tmp;
 		for (int i_rec = i;i_rec< mat.row;i_rec++)//Find the main number.From line i to the end.
 		{
-			if (abs(ans.ptr[i_rec][j].GetValue()) > temp_maxNumAbs)
+			if ((tmp = abs(ans(i_rec, j).GetValue())) > temp_maxNumAbs)
 			{
-				temp_maxNumAbs = abs(ans.ptr[i_rec][j].GetValue());
+				temp_maxNumAbs = tmp;
 				temp_maxNumPos = i_rec;
 			}
 		}
 		if (temp_maxNumAbs < precision || temp_maxNumPos == -1)//Zero.
 		{
-			if(NeedToSelect)(*sarray)->SArrayPtr[j] = true;//It is not a pivot column. Label it as true.
+			if (NeedToSelect)(*sarray)->SArrayPtr[j] = true;//It is not a pivot column. Label it as true.
 			continue;
 		}
-		
+
 		//Swap the main number to the nth row.
 		ans.swap(i, temp_maxNumPos);
 		//Reduce it to 1 by division.
-		ans.mult(i, reciprocal(ans.ptr[i][j]));
+		ans.mult(i, reciprocal(ans(i, j)));
 		//Eliminate.
 		for (int i_rec = 0;i_rec < mat.row;i_rec++)
 		{
-			if (ans.ptr[i_rec][j]!=zero&&  i_rec!=i)
+			if (ans(i_rec,j) != frc_zero && i_rec != i)
 			{
-				ans.add(i, i_rec, -ans.ptr[i_rec][j]);
+				ans.add(i, i_rec, -ans(i_rec, j));
 			}
 		}
-		
+
 		i++;
 		if (i == mat.row)break;
 	}
@@ -619,7 +552,6 @@ Matrix GaussEliminate(const Matrix& mat,int* rankptr,SelectArray** sarray)
 	}
 	return ans;
 }
-
 
 static Matrix matmerge_row(const Matrix& mat1, const Matrix& mat2)
 {
@@ -635,11 +567,11 @@ static Matrix matmerge_row(const Matrix& mat1, const Matrix& mat2)
 		{
 			if (j < mat1.column)
 			{
-				ans.ptr[i][j] = mat1.ptr[i][j];
+				ans(i, j) = mat1(i, j);
 			}
 			else
 			{
-				ans.ptr[i][j] = mat2.ptr[i][j-mat1.column];
+				ans(i, j) = mat2(i, j - mat1.column);
 			}
 		}
 	}
@@ -653,15 +585,15 @@ Matrix LeftNullSpace(const Matrix& mat)
 	GaussEliminate(mat, &rank);
 	if (rank == mat.row)return Matrix(1, mat.row);//A zero matrix.
 	Matrix merged_row = matmerge_row(mat, Identity(n));
-	Matrix U= GaussEliminate(merged_row);
-	Matrix E(n,n);//EA=U
-	
+	Matrix U = GaussEliminate(merged_row);
+	Matrix E(n, n);//EA=U
+
 
 	for (int i = 0;i < n;i++)
 	{
 		for (int j = 0;j < n;j++)
 		{
-			E.ptr[i][j] = U.ptr[i][j + mat.column];
+			E(i, j) = U(i, j + mat.column);
 		}
 	}
 
@@ -669,10 +601,9 @@ Matrix LeftNullSpace(const Matrix& mat)
 	Matrix LeftNullSpace(mat.row - rank, mat.row);
 	for (int i = rank;i < mat.row;i++)
 	{
-		memcpy(LeftNullSpace.ptr[i - rank], E.ptr[i], sizeof(fraction)*n);
+		for (int j = 0;j < n;j++)
+			LeftNullSpace(i - rank, j) = E(i, j);
 	}
-	
-
 	return LeftNullSpace;
 }
 
@@ -685,7 +616,7 @@ Matrix NullSpace(const Matrix& mat)
 //Gauss det Algorithm
 fraction Gdet(const Matrix& mat)
 {
-	if (mat.column != mat.row)throw MATH_ERROR;
+	if (mat.column != mat.row)throw Exceptions(_Matrix_Size_Error);
 	mat.ValidityCheck();
 
 	Matrix ans(mat);
@@ -695,18 +626,18 @@ fraction Gdet(const Matrix& mat)
 	{
 		int temp_maxNumPos = -1;
 		double temp_maxNumAbs = 0.0;
-		for (int i_rec = i;i_rec< mat.row;i_rec++)//Find the main number.From line i to the end.
+		double temp;
+		for (int i_rec = i;i_rec < mat.row;i_rec++)//Find the main number.From line i to the end.
 		{
-			if (abs(ans.ptr[i_rec][j].GetValue()) > temp_maxNumAbs)
+			if ((temp = abs(ans(i_rec, j).GetValue())) > temp_maxNumAbs)
 			{
-				temp_maxNumAbs = abs(ans.ptr[i_rec][j].GetValue());
+				temp_maxNumAbs = temp;
 				temp_maxNumPos = i_rec;
 			}
 		}
 		if (temp_maxNumAbs < precision || temp_maxNumPos == -1)//Zero.
 		{
-			return zero;
-			continue;
+			return frc_zero;
 		}
 
 		//Swap the main number to the nth row.
@@ -715,24 +646,24 @@ fraction Gdet(const Matrix& mat)
 			ans.swap(i, temp_maxNumPos);
 			swapcnt++;
 		}
-		
-		fraction tmp_reci=reciprocal(ans.ptr[i][j]);
+
+		fraction tmp_reci = reciprocal(ans(i, j));
 		//Eliminate.
-		for (int i_rec = i+1;i_rec < mat.row;i_rec++)//Triangularize.
+		for (int i_rec = i + 1;i_rec < mat.row;i_rec++)//Triangularize.
 		{
-			if ( ans.ptr[i_rec][j]!=zero )
+			if (ans(i_rec, j) != frc_zero)
 			{
-				ans.add(i, i_rec, -ans.ptr[i_rec][j]*tmp_reci);
+				ans.add(i, i_rec, -ans(i_rec, j) * tmp_reci);
 			}
 		}
 		i++;
 	}
 
-	fraction detValue = one;
+	fraction detValue = frc_one;
 
 	for (int i = 0;i < mat.row;i++)
 	{
-		detValue = detValue*ans.ptr[i][i];
+		detValue *= ans(i, i);
 	}
 
 	if (swapcnt % 2 == 0)
@@ -743,70 +674,64 @@ fraction Gdet(const Matrix& mat)
 	{
 		return -detValue;
 	}
-	
 }
 
 //Gauss inverse Algorithm
 Matrix Ginverse(const Matrix& mat)
 {
-	if (mat.column != mat.row)throw MATH_ERROR;
+	if (mat.column != mat.row)throw Exceptions(_Matrix_Size_Error);
 	mat.ValidityCheck();
 
 	//Matrix Definition.
 	Matrix ans(mat);
-	Matrix Identity(mat.row, mat.column);
-
-	//Initialize identity matrix.
-	for (int k = 0;k < mat.row;k++)
-	{
-		Identity.ptr[k][k] = one;
-	}
+	Matrix E = Identity(mat.row);
 
 	int i = 0;
 	for (int j = 0;j < mat.column;j++)
 	{
 		int temp_maxNumPos = -1;
 		double temp_maxNumAbs = 0.0;
-		for (int i_rec = i;i_rec< mat.row;i_rec++)//Find the main number.From line i to the end.
+		double temp;
+		for (int i_rec = i;i_rec < mat.row;i_rec++)//Find the main number.From line i to the end.
 		{
-			if (abs(ans.ptr[i_rec][j].GetValue()) > temp_maxNumAbs)
+			if ((temp = abs(ans(i_rec, j).GetValue())) > temp_maxNumAbs)
 			{
-				temp_maxNumAbs = abs(ans.ptr[i_rec][j].GetValue());
+				temp_maxNumAbs = temp;
 				temp_maxNumPos = i_rec;
 			}
 		}
 		if (temp_maxNumAbs < precision || temp_maxNumPos == -1)//Zero detValue.
 		{
-			throw MATH_ERROR;
+			throw Exceptions(_Matrix_Math_Error);
 		}
 
 		//Swap the main number to the i-th row.
 		if (temp_maxNumPos != i)
 		{
 			ans.swap(i, temp_maxNumPos);
-			Identity.swap(i, temp_maxNumPos);
+			E.swap(i, temp_maxNumPos);
 		}
 
 		//Reduce it to 1 by division.
-		fraction tmp_reci = reciprocal(ans.ptr[i][j]);
+		fraction tmp_reci = reciprocal(ans(i, j));
 		ans.mult(i, tmp_reci);
-		Identity.mult(i, tmp_reci);
-		
+		E.mult(i, tmp_reci);
+
 		//Eliminate.
 		for (int i_rec = 0;i_rec < mat.row;i_rec++)
 		{
-			if (!( ans.ptr[i_rec][j]==zero ) && i_rec != i)
+			if (!(ans(i_rec, j) == frc_zero) && i_rec != i)
 			{
-				fraction negative_ans = -ans.ptr[i_rec][j];
+				fraction negative_ans = -ans(i_rec, j);
 				ans.add(i, i_rec, negative_ans);
-				Identity.add(i, i_rec, negative_ans);//The same operation.
+				E.add(i, i_rec, negative_ans);//The same operation.
 			}
 		}
 
 		i++;
 	}
 
-	return Identity;
+	return E;
 }
 
 int Matrix::rank()
@@ -821,13 +746,11 @@ void Matrix::ReplaceColumn(const Matrix& B, int pos_col)
 {
 	LineValidity(this, false, pos_col);
 	//Check if B is the required shape.
-	if (row != B.row)throw MATH_ERROR;
-	if (B.column != 1)throw MATH_ERROR;
+	if (row != B.row)throw Exceptions(_Matrix_Size_Error);
+	if (B.column != 1)throw Exceptions(_Matrix_Size_Error);
 
 	for (int i = 0;i < row;i++)
-	{
-		ptr[i][pos_col] = B.ptr[i][0];
-	}
+		this->operator()(i, pos_col) = B.operator()(i, 0);
 	return;
 }
 
@@ -835,92 +758,44 @@ Matrix Matrix::EigenEqu()
 {
 	//Check.
 	ValidityCheck();
-	if (row != column)throw MATH_ERROR;
+	if (row != column)throw Exceptions(_Matrix_Size_Error);
 
 	//int n=column;
-	Matrix eigen_ans(1,column+1);
+	Matrix eigen_ans(1, column + 1);
 	SelectArray s_array(column);
 	s_array.initialize();
-	eigen_ans.ptr[0][0] = one;
+	eigen_ans(0, 0) = frc_one;
 
 	Matrix temp;
 	while (!s_array.OverFlowFlag)
 	{
 		temp = *this;
-		for (int i = row-1;i >=0;i--)
+		for (int i = row - 1;i >= 0;i--)
 		{
-			if (!(s_array.SArrayPtr[i] ))
+			if (!(s_array.SArrayPtr[i]))
 			{
 				temp = reduce(temp, i, i);
 			}
 		}
-		eigen_ans.ptr[0][temp.row] = eigen_ans.ptr[0][temp.row] + Gdet(temp);
+		eigen_ans(0, temp.row) += Gdet(temp);
 		s_array++;
 	}
-	
-	for (int i = 0;i < column+1;i++)
-	{
-		if (i % 2 != 0)eigen_ans.ptr[0][i] = -eigen_ans.ptr[0][i];
-	}
 
+	for (int i = 0;i < column + 1;i++)
+	{
+		if (i % 2 != 0)eigen_ans(0, i) = -eigen_ans(0, i);
+	}
 	return eigen_ans;
 }
 
-Matrix RowSum(const Matrix& mat)
-{
-	mat.ValidityCheck();
-	Matrix ans( mat.row,1);
-
-	for (int i = 0;i < mat.row;i++)
-	{
-		for (int j = 0;j < mat.column;j++)
-		{
-			ans.ptr[i][0] = ans.ptr[i][0] + mat.ptr[i][j];
-		}
-	}
-
-	return ans;
-
-}
-
-Matrix ColSum(const Matrix& mat)
-{
-	mat.ValidityCheck();
-	Matrix ans(1, mat.column);
-	for (int j = 0;j < mat.column;j++)
-	{
-		for (int i = 0;i < mat.row;i++)
-		{
-			ans.ptr[0][j] = ans.ptr[0][j] + mat.ptr[i][j];
-		}
-	}
-	return ans;
-}
-
-void ShowMatrix(fraction*& ptr_data)
-{
-	if (ptr_data->GetType() == 0)// a fraction
-	{
-		displayFrac(*ptr_data, true);
-	}
-	else//a matrix.
-	{
-		cout << *(ptr_data->GetThis());
-	}
-	return;
-}
 
 Matrix Identity(int n)
 {
-	if (n <= 0)throw MATH_ERROR;
-	Matrix ans(n,n);
-	fraction** mat_ptr = ans.GetPtr();
+	if (n <= 0)throw Exceptions(_Matrix_Size_Error);
+	Matrix ans(n, n);
 	for (int i = 0;i < n;i++)
 	{
-		mat_ptr[i][i] = one;
+		ans(i, i) = frc_one;
 	}
 	return ans;
 }
-
-//DIY functions/Special operations.
-

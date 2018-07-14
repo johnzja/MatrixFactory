@@ -15,9 +15,13 @@
 using namespace std;
 //Declare the external functions & constants.
 extern bool(*Clear)(int AnalyzeResult, bool initialize);
-extern char* ValidFuncName[];
-extern vector<fraction*> matArr;//Memory Tank
+extern vector<Math*> matArr;//Memory Tank
 extern vector<string> matNameArr;
+extern const char* _Invalid_MatName;
+extern const char* _Syntax_Error;
+extern const char* _Unknown_Mat_Error;
+extern const char* _Test_Debug_Error;
+
 
 //Function definition
 void defineMat(string& cmd,bool CheckValidity=true);
@@ -27,7 +31,7 @@ void init();
 void ClearMemoryTank();
 void ShowMemoryTank();
 
-char Edition[] = "2.1.14";//Version information.
+char Edition[] = "3.0.0";//Version information.
 int Matrix::MatrixCount = 0;//Initialize static member in class Matrix.
 
 
@@ -43,7 +47,7 @@ int main()
 	{
 		try 
 		{
-			fraction* ans;
+			Math* ans;
 			getline(cin, cmd);
 			//CheckMatDefinition.
 			int pos = cmd.find("define ");
@@ -82,12 +86,12 @@ int main()
 			else if (cmd == "")cmd = last_cmd;
 
 			ans = Calculate(cmd);
-			ShowMatrix(ans);
+			ans->print();
 			delete ans;
 		}
-		catch (char* A)
+		catch (Exceptions A)
 		{
-			cerr<< A << endl;
+			A.print();
 			cmd.clear();
 		}
 		(*Clear)(0, true);
@@ -102,66 +106,62 @@ void init()
 {
 	cout << "*********************" << "Matrix Factory" << "*********************" << endl;
 	cout << "Matrix Factory v" << Edition << endl;
-	cout << "Supported functions:  ";
-	for (register int i = 0;i < 17;i++)cout << ValidFuncName[i] << ",  ";
-	cout << endl;
 	cout << "Type help to get assistance." << endl;
 	return;
 }
 
 void defineMat(string& cmd,bool CheckValidity)
 {
-	if (cmd.length() == 0)  throw INVALID_MATNAME;
+	if (cmd.length() == 0)  throw Exceptions(_Syntax_Error);
 	bool EqFlag = false;//define A=transposeB;
 	string expr_after_eq;
 
-	unsigned int L = cmd.length();//Save the cpu time.
-	for (register unsigned int i = 0;i < L;i++)
+	size_t L = cmd.length();//Save the cpu time.
+	for (size_t i = 0;i < L;i++)
 	{
-		int Analyze_Result = AnalyzeChar(cmd[i]);
-		if (Analyze_Result == EQU_SIGN)
+		char_type Analyze_Result = AnalyzeChar(cmd[i]);
+		if (Analyze_Result == equ_sign)
 		{
 			expr_after_eq = cmd.substr(i + 1, cmd.length() - 1 - i);
 			cmd = cmd.substr(0, i);//Obtain the matrix name.
 			EqFlag = true;
 			break;
 		}
-		if (Analyze_Result != MATRIX) throw "Matrix name must be a capital letter!";
+		if (Analyze_Result != matrix) throw Exceptions(_Invalid_MatName);
 	}
 
-	if (cmd.length() != 1)throw INVALID_MATNAME;
+	if (cmd.length() != 1)throw Exceptions(_Syntax_Error);
 	if (CheckValidity)//Check collision.
 	{
-		for (register unsigned int i = 0;i < matNameArr.size();i++)//Check for collision.
+		for (size_t i = 0;i < matNameArr.size();i++)//Check for collision.
 		{
 			if (cmd == matNameArr[i])
 			{
-				throw INVALID_MATNAME;
+				throw Exceptions(_Invalid_MatName);
 			}
 		}
 	}
 
 	if (EqFlag)//case in which a sign of equation appeared.
 	{
-		fraction* result_equRight=Calculate(expr_after_eq);
+		Math* result_equRight=Calculate(expr_after_eq);
 		matArr.push_back(result_equRight);
 		matNameArr.push_back(cmd);
 
 		cout << cmd << ":=" << endl;
-		ShowMatrix(result_equRight);
+		result_equRight->print();
 	}
 	else
 	{
 		cout << "Please enter two positive integers. m¡Án Matrix." << endl;
 		int m, n;
 		cin >> m >> n;
-		if (m <= 0 || n <= 0)throw "Invalid input!";
+		if (m <= 0 || n <= 0)throw Exceptions(_Invalid_MatName);
 
 		cout << "Please Enter the " << m << " by " << n << " Matrix." << endl;
 		//Store the matrix.
 		matArr.push_back(new Matrix(InputMatrix(m, n)));
 		matNameArr.push_back(cmd);
-
 
 		//Some strange problems.
 		string rubbish;
@@ -175,40 +175,40 @@ void defineMat(string& cmd,bool CheckValidity)
 
 void redefineMat(string& cmd)
 {
-	if (cmd.length() == 0)  throw INVALID_MATNAME;
+	if (cmd.length() == 0)  throw Exceptions(_Invalid_MatName);
 
 	string cmd_prev_data = cmd;
 	bool EqFlag = false;
 
 	for (register unsigned int i = 0;i < cmd.length();i++)
 	{
-		int Analyze_Result = AnalyzeChar(cmd[i]);
-		if (Analyze_Result == EQU_SIGN)//"="
+		char_type Analyze_Result = AnalyzeChar(cmd[i]);
+		if (Analyze_Result == equ_sign)//"="
 		{
 			cmd = cmd.substr(0, i);//Matrix name.
 			EqFlag = true;
 			break;
 		}
-		if (Analyze_Result != MATRIX) throw "Matrix name must be composed of capital letters!";
+		if (Analyze_Result != matrix) throw Exceptions(_Invalid_MatName);
 	}
 
-	if (cmd.length() != 1)throw INVALID_MATNAME;
+	if (cmd.length() != 1)throw Exceptions(_Invalid_MatName);
 
 	int pointer = -1;
-	for (register unsigned int i = 0;i <matNameArr.size();i++)
+	for (size_t i = 0;i <matNameArr.size();i++)
 	{
 		if (matNameArr[i] == cmd)pointer = i;
 	}
 	if (pointer == -1)
 	{
 		cmd.clear();
-		throw UNKNOWN_MAT_ERROR;
+		throw Exceptions(_Unknown_Mat_Error);
 	}
 	else//delete matName [pointer] .
 	{	//Redefine.
 		defineMat(cmd_prev_data,false);
 
-		vector<fraction*>::iterator it_mat = matArr.begin();
+		vector<Math*>::iterator it_mat = matArr.begin();
 		vector<string>::iterator it_str = matNameArr.begin();
 
 		for (register int i = 0;i < pointer ;i++)
@@ -246,17 +246,15 @@ void ClearMemoryTank()
 
 void ShowMemoryTank()
 {
-	if (matArr.size() != matNameArr.size())throw UNIDENT_ERROR;
+	if (matArr.size() != matNameArr.size())throw Exceptions(_Test_Debug_Error);
 	cout << "Memory Tank used: " << matArr.size() << endl;
 	cout << ISOLATOR << endl;
 	for (unsigned int i = 0;i < matArr.size(); i++)
 	{
 		cout << matNameArr[i] << "=" << endl;
-		ShowMatrix(matArr[i]);
-		cout << ISOLATOR << endl;
+		matArr[i]->print();
+		cout << endl << ISOLATOR << endl;
 	}
-	
-	//return;
 }
 //Test
 
