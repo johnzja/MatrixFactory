@@ -171,7 +171,7 @@ private:
 	static int MatrixCount;
 };
 
-//SelectArray
+//SelectArray used in Alg. EigenEqu
 struct SelectArray
 {
 
