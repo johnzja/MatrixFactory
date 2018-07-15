@@ -16,6 +16,9 @@ extern const char* _Invalid_Input;
 extern const Int Int_one;
 extern const fraction frc_zero;
 
+extern int QR(const Matrix& A, Matrix& Q, Matrix& R);
+
+
 #define DECIMAL_LENGTH 5
 using namespace std;
 
@@ -383,6 +386,9 @@ Math* DeepCopy(Math* src)
 
 	case MAT:
 		ans = new Matrix(*(dynamic_cast<Matrix*>(src))); break;
+
+	case DICT:
+		ans = new Dict(*(dynamic_cast<Dict*>(src))); break;
 
 	default:
 
@@ -836,6 +842,25 @@ Math* Func(const string& cmd, Math* data, bool& Error)
 			else if (cmd == "nullspace")ans_ptr = new Matrix(NullSpace(*(dynamic_cast<Matrix*>(data))));
 			else if (cmd == "n")((Matrix*)(ans_ptr = new Matrix(*dynamic_cast<Matrix*>(data))))->AbortPreciseCalculation();
 
+			else if (cmd == "qr")
+			{
+				Matrix A = *dynamic_cast<Matrix*>(data);//Source
+				if (A.GetColCnt() != A.GetRowCnt())throw Exceptions(_Matrix_Size_Error);
+				int n = A.GetColCnt();
+
+				Matrix* ptr_Q = new Matrix(n, n);
+				Matrix* ptr_R = new Matrix(n, n);
+
+				QR(A, *ptr_Q, *ptr_R);//Perform QR.
+	
+
+				Pair p[2];
+				strcpy(p[0].key, "Q"); p[0].value = ptr_Q;
+				strcpy(p[1].key, "R"); p[1].value = ptr_R;
+				ans_ptr = new Dict(2, p);
+
+
+			}
 			//Customized functions
 			else
 			{

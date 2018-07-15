@@ -10,6 +10,7 @@ extern const double precision = 1e-10;
 extern const fraction frc_zero = fraction();
 extern const fraction frc_one = fraction(1,1);
 extern const Int Int_one;
+extern const Double Double_one;
 
 //Constructor
 fraction::fraction(int a, int b) :value(0.0,PREC)//unsimplified. precise.  "value" not evaluated.
@@ -228,10 +229,10 @@ fraction reciprocal(const fraction& a)
 		fraction ans(a.denominator, a.numerator);//The reciprocal.
 		return simplify(ans);
 	}
-	else
+	else//a.isApprox==true.
 	{
 		if (a.value.isZero())throw Exceptions(_Divide_By_Zero);
-		return fraction(Double((Int)1, 0) / a.value);
+		return fraction(Double_one / a.value);
 	}
 }
 

@@ -613,7 +613,7 @@ Int::operator int()const//<=10^9
 Int::Int(const Int& src)//copy constructor. Needn`t allocate memory every time.
 {
 	int realL = src.data_tail_ptr - src.data_ptr + 1;
-	data_ptr = (char*)malloc(realL);
+	data_ptr = (char*)calloc(realL, 1);
 	memcpy(data_ptr, src.data_ptr, realL);
 
 

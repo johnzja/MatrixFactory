@@ -2,15 +2,12 @@
 #include "stdafx.h"
 #include "ExpressionAnalyzer.h"
 
-//extern bool(*Clear)(int AnalyzeResult, bool initialize);
 extern const char* _Invalid_Vector;
 extern const char* _Vector_Dim_Umnatched;
 extern const char* _Matrix_Size_Error;
 extern const char* _Matrix_Math_Error;
 
 extern const fraction frc_zero;
-
-
 
 
 fraction InnerProduct(const Matrix &A, const Matrix &B) 
@@ -24,7 +21,8 @@ fraction InnerProduct(const Matrix &A, const Matrix &B)
 fraction norm(const Matrix& A)
 {
 	if (A.GetColCnt() != 1) throw Exceptions(_Matrix_Size_Error);
-	return sqrt(InnerProduct(A, A).GetValueD());
+	
+	return fraction(sqrt(InnerProduct(A, A).GetValueD()));
 }
 
 Matrix SubMatrix(const Matrix &A, int row_p, int col_p) 
@@ -66,7 +64,7 @@ bool isUpperTriangular(const Matrix& M)
 	return true;
 }
 
-int QR(Matrix& A, Matrix& Q, Matrix& R)
+int QR(const Matrix& A, Matrix& Q, Matrix& R)
 {
 	if (A.rank() != A.GetColCnt()) throw Exceptions(_Matrix_Size_Error);
 	if (A.GetColCnt() != Q.GetColCnt() || A.GetRowCnt() != Q.GetRowCnt()) throw Exceptions(_Matrix_Size_Error);
@@ -77,19 +75,21 @@ int QR(Matrix& A, Matrix& Q, Matrix& R)
 		Matrix cur = Matrix(A.GetColumn(i));
 		for (int j = 0; j < i; j++)
 		{
-			cur = cur - InnerProduct(Q.GetColumn(j), cur)*(Q.GetColumn(j));
+			cur = cur - (InnerProduct(Q.GetColumn(j), cur)*(Q.GetColumn(j)));
 		}
+	
 		cur = reciprocal(norm(cur)) * cur;
 		for (int k = 0; k < Q.GetRowCnt(); k++)
 		{
 			Q(k, i) = cur(k, 0);
 		}
 	}
-	R = Transpose(Q)*A;
+	Matrix QT = Transpose(Q);
+	R = QT * A;
 	return 0;
 }
 
-int QR2(Matrix &A, Matrix& Q, Matrix& R) 
+int QR2(const Matrix &A, Matrix& Q, Matrix& R) 
 {
 	if (Q.GetRowCnt() != A.GetRowCnt() || Q.GetRowCnt() != Q.GetRowCnt()) throw Exceptions(_Matrix_Size_Error);
 	if (A.GetColCnt() != R.GetColCnt() || A.GetRowCnt() != R.GetRowCnt()) throw Exceptions(_Matrix_Size_Error);
@@ -109,7 +109,7 @@ int QR2(Matrix &A, Matrix& Q, Matrix& R)
 	return 0;
 }
 
-Matrix Eig(Matrix &A) 
+Matrix Eig(const Matrix &A) 
 {
 	if (A.GetColCnt() != A.GetRowCnt()) throw Exceptions(_Matrix_Size_Error);
 	else if (A.GetRowCnt() == 0) throw Exceptions(_Matrix_Size_Error);
@@ -132,7 +132,7 @@ Matrix Eig(Matrix &A)
 	return result;
 }
 
-int DiagonalizeRealSymmetricMatrix(Matrix &A, Matrix&Q, Matrix&D)
+int DiagonalizeRealSymmetricMatrix(const Matrix &A, Matrix&Q, Matrix&D)
 {
 	if (A != Transpose(A)) throw Exceptions(_Matrix_Math_Error);
 	if (D.GetRowCnt() != D.GetColCnt() || D.GetRowCnt() != A.GetRowCnt()) throw Exceptions(_Matrix_Size_Error);
@@ -161,33 +161,33 @@ int DiagonalizeRealSymmetricMatrix(Matrix &A, Matrix&Q, Matrix&D)
 	return 0;
 }
 
-void EigV(Matrix& A)
+void EigV(const Matrix& A)
 {
 	if (A.GetColCnt() != A.GetRowCnt()) throw Exceptions(_Matrix_Size_Error);
 	else if (A.GetRowCnt() == 0) throw Exceptions(_Matrix_Size_Error);
 	Matrix eigList = Eig(A);
 	cout << eigList << endl;
-	for (int i = 0; i < eigList.GetRowCnt(); i++) 
+	for (int i = 0; i < eigList.GetRowCnt(); i++)
 	{
 		Matrix C = A - (eigList(i, 0))*Identity(A.GetRowCnt());
-		if ((det(C).GetValue()) == 0.0) 
+		if ((det(C).GetValue()) == 0.0)
 		{
 			cout << C << endl;
 			cout << NullSpace(C) << endl;
 		}
-		else 
+		else
 		{
 			C = adj(C);
 			C = (fraction)(pow(abs(det(C).GetValue()), (double)(-1.0 / C.GetRowCnt()))) * C;
 			cout << C << endl;
 			cout << det(C) << endl;
 			Matrix tempEigV = Identity(C.GetRowCnt());
-			for (int i = 0; i < 10; i++) 
+			for (int i = 0; i < 10; i++)
 			{
 				tempEigV = C * tempEigV;
-				for (int i = 0; i < tempEigV.GetRowCnt(); i++) 
+				for (int i = 0; i < tempEigV.GetRowCnt(); i++)
 				{
-					if (norm(tempEigV.GetColumn(i)).GetValue() >= 1e-12) 
+					if (norm(tempEigV.GetColumn(i)).GetValue() >= 1e-12)
 					{
 						tempEigV.ReplaceColumn(reciprocal(norm(tempEigV.GetColumn(i)))*tempEigV.GetColumn(i), i);
 					}

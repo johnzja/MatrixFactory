@@ -322,7 +322,7 @@ int abs_compare(const Double& a,const Double& b)
 				{
 					return +1;
 				}
-				else if (*(ptr_a) > *ptr_b)
+				else if (*(ptr_a) < *ptr_b)
 				{
 					return -1;
 				}
@@ -433,7 +433,7 @@ Double abs_subtract(const Double& a, const Double& b)
 	//Read ans.
 
 	Int ans_val = Int(0, max_prec);//realLength=zero
-	for (int i = max_prec - 1;i >= 0;i--)
+	for (int i = max_prec - 1;(i >= 0 && num_tail_ptr >= diff_ptr);i--)
 	{
 		*(ans_val.data_ptr + i) = *(num_tail_ptr--);
 	}
@@ -737,7 +737,7 @@ Double exponent(const Double& x)
 	return result;
 }
 
-Double lnop(const Double& x)
+static Double lnop(const Double& x)
 {
 	if (x > Double_one || x <= -Double_one) throw Exceptions(_Not_In_Conv_Radius);
 	Double result = x;
@@ -788,5 +788,5 @@ Double ArcTan(const Double& x)
 
 Double sqrt(const Double& x)
 {
-	return pow(x, Double(Double_one, Double(Int_one, (Int)2)));
+	return pow(x, Double(Int_one, (Int)2));
 }

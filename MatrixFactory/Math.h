@@ -7,7 +7,7 @@ using namespace std;
 //Type info.
 enum data_type
 {
-	EXC,FUNC,INT,DBL,FRC,MAT,NULLS
+	EXC,FUNC,INT,DBL,FRC,MAT,NULLS,DICT
 };
 // & operators are defined as enum.
 
@@ -16,6 +16,7 @@ class Math;
 class fraction;
 class Matrix;
 class Int;
+class Dict;
 
 class Math
 {
@@ -381,7 +382,7 @@ public:
 	void col_add(int lineA, int lineB, const fraction& rate);
 	void col_mult(int line, const fraction& rate);
 
-	int rank();
+	int rank()const;
 	Matrix EigenEqu();//return a 1xn matrix.
 
 	virtual ~Matrix()
@@ -394,8 +395,8 @@ public:
 		MatrixCount--;
 	}
 
-	Matrix GetRow(int Row);
-	Matrix GetColumn(int Column);
+	Matrix GetRow(int Row)const;
+	Matrix GetColumn(int Column)const;
 	void ReplaceColumn(const Matrix& B, int pos_col);
 
 	int GetRowCnt()const { return row; }
@@ -422,6 +423,55 @@ protected:
 Matrix pow(const Matrix& mat, int n);
 
 //Matrix class ended here.
+
+struct Pair
+{
+	Math* value;
+	char key[20];
+};
+
+class Dict :public Math//Dictionary.
+{
+public:
+	Dict(int _length, Pair pair_arr[])
+	{
+		for (int i = 0;i < _length;i++)
+		{
+			vct_dict.push_back(pair_arr[i]);
+		}
+	}
+
+	Dict(const Dict& _src);
+	Dict& operator=(const Dict& _src);
+
+	virtual ~Dict()
+	{
+		size_t L = vct_dict.size();
+		for (size_t i = 0;i < L;i++)
+		{
+			delete vct_dict[i].value;//Release the ptrs.
+		}
+	}
+
+	virtual void print()const
+	{
+		size_t L = vct_dict.size();
+		for (size_t i = 0;i < L;i++)
+		{
+			cout << vct_dict[i].key << '=' << endl;
+			vct_dict[i].value->print();
+			cout << endl;
+		}
+	}
+
+	virtual data_type GetType()const
+	{
+		return DICT;
+	}
+
+private:
+	vector<Pair> vct_dict;
+};
 
 struct SelectArray//In resources.
 {
