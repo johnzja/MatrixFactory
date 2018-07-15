@@ -24,7 +24,7 @@ fraction InnerProduct(const Matrix &A, const Matrix &B)
 fraction norm(const Matrix& A)
 {
 	if (A.GetColCnt() != 1) throw Exceptions(_Matrix_Size_Error);
-	return sqrt(InnerProduct(A, A).GetValue());
+	return sqrt(InnerProduct(A, A).GetValueD());
 }
 
 Matrix SubMatrix(const Matrix &A, int row_p, int col_p) 

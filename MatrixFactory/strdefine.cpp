@@ -27,5 +27,7 @@ extern const char* _Unknown_Mat_Error = "Unknown matrix!";
 extern const char* _Invalid_Vector = "This is an invalid vector!";
 extern const char* _Vector_Dim_Umnatched = "Vector Dimension Unmatched!";
 
+extern const char* _Not_In_Conv_Radius = "Not in convergent radius!";
+
 
 

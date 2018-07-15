@@ -5,6 +5,8 @@ extern const Int Int_one = Int(1);
 
 extern const char*   _Divide_By_Zero;
 extern const char* _Invalid_Input;
+extern const char* _Not_In_Conv_Radius;
+extern const char* _Math_Error;
 extern int str_cmp(char* a_start, char* b_start, int a_length, int b_length);
 extern const Double Double_zero = Double((Int)0, Int_one);
 extern const Double Double_one = Double(Int_one, Int_one);
@@ -687,7 +689,7 @@ bool operator>(const Double& a, const Double& b)
 
 Double pow(const Double& x, int y)
 {
-	if (x == Double_zero && y <= 0) throw MATH_ERREXCEPT;
+	if (x == Double_zero && y <= 0) throw Exceptions(_Math_Error);
 	else if (y == 0) return Double_one;
 	else if (y == 1) return x;
 	else if (x == Double_zero) return Double_zero; 
@@ -725,7 +727,8 @@ Double exponent(const Double& x)
 	Double result = Double_one; 
 	Double term = Double_one; 
 	int i = 1;
-	while (abs(term) > pow(Double(Int(10)), (int)-30)) 
+	Double prec = pow(Double(Int(10)), (int)-30);
+	while (abs(term) > prec)
 	{
 		term = (term * x) / (Double(Int(i)));
 		result = result + term;
@@ -736,7 +739,7 @@ Double exponent(const Double& x)
 
 Double lnop(const Double& x)
 {
-	if (x > Double_one || x <= -Double_one) throw "Not in convergent radius";
+	if (x > Double_one || x <= -Double_one) throw Exceptions(_Not_In_Conv_Radius);
 	Double result = x;
 	Double term = x;
 	int i = 2;
@@ -751,8 +754,8 @@ Double lnop(const Double& x)
 
 Double ln(const Double& x)
 {
-	if (x < (Double)0) throw "LN_NUM_EXP"; // 0 needs to be real Double
-	Double u = (x - (Double)1) / (x + (Double)1); // 1 needs to be real Double
+	if (x < Double_zero) throw Exceptions(_Math_Error);
+	Double u = (x - Double_one) / (x + Double_one);
 	return (lnop(u) - lnop(-u));
 }
 
@@ -781,4 +784,9 @@ Double ArcTan(const Double& x)
 	}
 
 	return ans;
+}
+
+Double sqrt(const Double& x)
+{
+	return pow(x, Double(Double_one, Double(Int_one, (Int)2)));
 }

@@ -67,6 +67,17 @@ Matrix::Matrix(const Matrix& mat) :row(mat.row), column(mat.column)//the Copy Co
 	MatrixCount++;
 }
 
+void Matrix::AbortPreciseCalculation()
+{
+	ValidityCheck();
+	for (int i = 0;i < row;i++)
+	{
+		for (int j = 0;j < column;j++)
+		{
+			(*this)(i, j).AbortPreciseCalculation();
+		}
+	}
+}
 
 Matrix& Matrix::operator=(const Matrix& mat)
 {

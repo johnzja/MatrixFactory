@@ -16,7 +16,6 @@ extern const char* _Invalid_Input;
 extern const Int Int_one;
 extern const fraction frc_zero;
 
-
 #define DECIMAL_LENGTH 5
 using namespace std;
 
@@ -60,7 +59,7 @@ Math* _calculate(Math* a, Math* b, optrs optr)// a & b should be deleted?!
 					ans = new Int((*dynamic_cast<Int*>(a)) * (*dynamic_cast<Int*>(b))); break;
 
 				case  divide:
-					ans = new Int((*dynamic_cast<Int*>(a)) / (*dynamic_cast<Int*>(b))); break;
+					ans = new fraction((*dynamic_cast<Int*>(a)), (*dynamic_cast<Int*>(b))); break;
 				}
 			}
 			else if (bType == FRC)//INT optr FRC
@@ -785,35 +784,42 @@ Math* Func(const string& cmd, Math* data, bool& Error)
 	data_type data_type;
 	if (data == nullptr)data_type = NULLS;else data_type = data->GetType();
 	Math* ans_ptr = nullptr;//Answer pointer.
+	fraction* _tmp = nullptr;
 	double val = 0.0;
 	try
 	{
 		switch (data_type)
 		{
+		case INT:
+			_tmp = new fraction(*dynamic_cast<Int*>(data));
+			ans_ptr = Func(cmd, _tmp, Error);
+			//Do not need to delete _tmp;
+			break;
+
 		case FRC:
-			if (cmd == "pi") { ans_ptr = new fraction(PI); }
-			else if (cmd == "e") { ans_ptr = new fraction(EULER_NUM); }//consts
+			val = (dynamic_cast<fraction*>(data))->GetValue();
+			if (cmd == "sin") { ans_ptr = new fraction(sin(val)); }
+			else if (cmd == "cos") { ans_ptr = new fraction(cos(val)); }
+			else if (cmd == "tan") { ans_ptr = new fraction(tan(val)); }
+			else if (cmd == "ln") { ans_ptr = new fraction(ln(dynamic_cast<fraction*>(data)->GetValueD())); }
+			else if (cmd == "lg") { ans_ptr = new fraction(log(val) / log(10.0)); }
+			else if (cmd == "arcsin") { ans_ptr = new fraction(asin(val)); }
+			else if (cmd == "arccos") { ans_ptr = new fraction(acos(val)); }
+			else if (cmd == "arctan") { ans_ptr = new fraction(atan(val)); }
+			else if (cmd == "sqrt") { ans_ptr = new fraction(pow(dynamic_cast<fraction*>(data)->GetValueD(), Double(Int_one, (Int)2))); }
+			//else if (cmd == "cbrt") { ans_ptr= fraction(cbrt(data->value)); }
+			else if (cmd == "reciprocal") { ans_ptr = new fraction(reciprocal(*dynamic_cast<fraction*>(data))); }
+			else if (cmd == "n")//Numerical calculation initialized.
+			{
+				((fraction*)(ans_ptr = new fraction(*dynamic_cast<fraction*>(data))))->AbortPreciseCalculation();
+			}
 			else
 			{
-				val = (dynamic_cast<fraction*>(data))->GetValue();
-				if (cmd == "sin") { ans_ptr = new fraction(sin(val)); }
-				else if (cmd == "cos") { ans_ptr = new fraction(cos(val)); }
-				else if (cmd == "tan") { ans_ptr = new fraction(tan(val)); }
-				else if (cmd == "ln") { ans_ptr = new fraction(log(val)); }
-				else if (cmd == "lg") { ans_ptr = new fraction(log(val) / log(10.0)); }
-				else if (cmd == "arcsin") { ans_ptr = new fraction(asin(val)); }
-				else if (cmd == "arccos") { ans_ptr = new fraction(acos(val)); }
-				else if (cmd == "arctan") { ans_ptr = new fraction(atan(val)); }
-				else if (cmd == "sqrt") { ans_ptr = new fraction(sqrt(val)); }
-				//else if (cmd == "cbrt") { ans_ptr= fraction(cbrt(data->value)); }
-				else if (cmd == "reciprocal") { ans_ptr = new fraction(reciprocal(*dynamic_cast<fraction*>(data))); }
-				else
-				{
-					Error = true;
-					delete data;
-					return nullptr;//Will memory Leak? No!
-				}
+				Error = true;
+				delete data;
+				return nullptr;//Will memory Leak? No!
 			}
+
 			delete data;//delete a null pointer is valid.
 			break;
 
@@ -828,9 +834,9 @@ Math* Func(const string& cmd, Math* data, bool& Error)
 			else if (cmd == "eigenequ")ans_ptr = new Matrix((dynamic_cast<Matrix*>(data))->EigenEqu());
 			else if (cmd == "leftnullspace")ans_ptr = new Matrix(LeftNullSpace(*(dynamic_cast<Matrix*>(data))));
 			else if (cmd == "nullspace")ans_ptr = new Matrix(NullSpace(*(dynamic_cast<Matrix*>(data))));
+			else if (cmd == "n")((Matrix*)(ans_ptr = new Matrix(*dynamic_cast<Matrix*>(data))))->AbortPreciseCalculation();
 
 			//Customized functions
-
 			else
 			{
 				Error = true;

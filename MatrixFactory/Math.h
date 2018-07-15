@@ -225,6 +225,8 @@ Double exponent(const Double& x);
 Double lnop(const Double& x);
 Double ln(const Double& x);
 Double pow(const Double& x, const Double& y);
+Double sqrt(const Double& x);
+
 
 
 ostream& operator<<(ostream& ost, const fraction& frac);
@@ -369,6 +371,7 @@ public:
 	Matrix& operator=(const Matrix& mat);
 	fraction& operator()(int i, int j)const;
 	bool ValidityCheck()const;
+	void AbortPreciseCalculation();
 
 	void swap(int lineA, int lineB);
 	void add(int lineA, int lineB, const fraction& rate);

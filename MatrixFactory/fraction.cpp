@@ -151,14 +151,22 @@ fraction operator+(const fraction& a, const fraction& b)
 		fraction ans = fraction(a.numerator*b.denominator + a.denominator*b.numerator, a.denominator*b.denominator);
 		return simplify(ans);
 	}
-	else
+	else if(a.isApprox && b.isApprox)
 	{
 		return fraction(a.value + b.value);
+	}
+	else if (!a.isApprox && b.isApprox)
+	{
+		return fraction(a.GetValueD() + b.value);
+	}
+	else
+	{
+		return fraction(a.value + b.GetValueD());
 	}
 }
 fraction operator-(const fraction& a)
 {
-	if (a.isApprox == false)
+	if (!a.isApprox)
 	{
 		fraction ans(-a.numerator, a.denominator);
 		return simplify(ans);
@@ -176,9 +184,17 @@ fraction operator-(const fraction& a, const fraction& b)
 		fraction ans = fraction(a.numerator*b.denominator - a.denominator*b.numerator, a.denominator*b.denominator);
 		return simplify(ans);
 	}
-	else
+	else if(a.isApprox && b.isApprox)
 	{
 		return fraction(a.value - b.value);
+	}
+	else if (!a.isApprox && b.isApprox)
+	{
+		return fraction(a.GetValueD() - b.value);
+	}
+	else
+	{
+		return fraction(a.value - b.GetValueD());
 	}
 }
 fraction operator*(const fraction& a, const fraction& b)
@@ -188,9 +204,17 @@ fraction operator*(const fraction& a, const fraction& b)
 		fraction ans(a.numerator*b.numerator, a.denominator*b.denominator);
 		return simplify(ans);
 	}
-	else
+	else if(a.isApprox && b.isApprox)
 	{
 		return fraction(a.value*b.value);
+	}
+	else if (!a.isApprox && b.isApprox)
+	{
+		return fraction(a.GetValueD() * b.value);
+	}
+	else
+	{
+		return fraction(a.value * b.GetValueD());
 	}
 }
 
@@ -308,7 +332,6 @@ bool isInt(const fraction& frc)
 	if (temp.denominator == Int_one)return true;
 	else return false;
 }
-
 
 ostream& operator<<(ostream& ost, const fraction& frac)
 {
