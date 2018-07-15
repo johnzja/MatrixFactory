@@ -58,6 +58,22 @@ Int::Int(char* src, int length):length(length)
 	data_tail_ptr = src + length - 1;
 }
 
+Int::Int(const string& str)//convert string into Int
+{
+	size_t L;
+	length = L = str.length();
+	data_ptr = (char*)calloc(L, 1);
+	char* tmp_ptr = data_ptr;
+	int i = L - 1;
+	while (i >= 0 && str[i] >= '0' && str[i] <= '9')
+	{
+		*(tmp_ptr++) = str[i--] - '0';
+	}
+	real_length();
+	sign = true;
+}
+
+
 int Int::GetLength()const
 {
 	return data_tail_ptr - data_ptr + 1;

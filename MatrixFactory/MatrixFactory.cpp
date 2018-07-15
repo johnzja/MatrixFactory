@@ -30,8 +30,10 @@ void help();
 void init();
 void ClearMemoryTank();
 void ShowMemoryTank();
+void Show_Lines();
 
-char Edition[] = "3.0.0";//Version information.
+
+char Edition[] = "3.0.1";//Version information.
 int Matrix::MatrixCount = 0;//Initialize static member in class Matrix.
 
 
@@ -40,7 +42,6 @@ int main()
 	string cmd;//command.
 	string last_cmd;//previous command.
 	Clear = Analyze_Change;//Initialize function pointer.
-
 	init();	//display some basic information about this application.
 
 	while (true)
@@ -83,6 +84,7 @@ int main()
 				continue;
 			}
 			else if (cmd == "showmem") { ShowMemoryTank();continue; }
+			else if (cmd == "showlines") { Show_Lines();continue; }
 			else if (cmd == "")cmd = last_cmd;
 
 			ans = Calculate(cmd);
@@ -258,3 +260,7 @@ void ShowMemoryTank()
 }
 //Test
 
+void Show_Lines()
+{
+	cout << 4807 << endl;
+}

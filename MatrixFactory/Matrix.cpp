@@ -87,8 +87,8 @@ Matrix& Matrix::operator=(const Matrix& mat)
 			{
 				for (int j = 0;j < column;j++)
 				{
-					if ((temp_ptr = dynamic_cast<fraction*>(&mat.ptr[i][j])) == nullptr)throw Exceptions(_Matrix_Pointer_Corrupted);
-					*temp_ptr = simplify(*temp_ptr);
+					if ((temp_ptr = (dynamic_cast<fraction*>(mat.ptr[i]) + j)) == nullptr)throw Exceptions(_Matrix_Pointer_Corrupted);
+					*(dynamic_cast<fraction*>(ptr[i]) + j) = simplify(*temp_ptr);
 				}
 			}
 		}
@@ -392,6 +392,35 @@ Matrix operator%(const Matrix& mat1, const Matrix& mat2)
 		}
 	}
 	return M;
+}
+
+Matrix pow(const Matrix& mat, int n)
+{
+	mat.ValidityCheck();
+	if (mat.GetRowCnt() != mat.GetColCnt())throw Exceptions(_Matrix_Size_Error);
+	if (n == 0)
+	{
+		return Identity(mat.GetRowCnt());
+	}
+	else if (n > 0)//Fast power Algorithm
+	{
+		Matrix  base = mat;
+		Matrix ans = Identity(mat.GetRowCnt());
+		int _n = n;
+
+		while (_n)
+		{
+			if (_n & 1)ans = ans * base;
+			base = base * base;
+			_n >>= 1;
+		}
+		return ans;
+	}
+	else
+	{
+		return pow(Ginverse(mat), -n);
+	}
+
 }
 
 Matrix Transpose(const Matrix& mat)

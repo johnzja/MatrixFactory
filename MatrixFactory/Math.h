@@ -87,7 +87,8 @@ public:
 	//	Int(long int val);
 	//Int(double val_d);
 	Int(const Int& src);
-	Int(char* src, int length);
+	Int(char* src, int length);//Should not be used!
+	Int(const string& str);
 	Int& operator=(const Int& src);
 	Int operator-()const;
 
@@ -414,6 +415,8 @@ protected:
 	Math** ptr;
 	static int MatrixCount;
 };
+
+Matrix pow(const Matrix& mat, int n);
 
 //Matrix class ended here.
 
