@@ -262,5 +262,5 @@ void ShowMemoryTank()
 
 void Show_Lines()
 {
-	cout << 4807 << endl;
+	cout << 5049 << endl;
 }

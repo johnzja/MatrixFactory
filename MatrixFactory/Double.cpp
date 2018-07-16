@@ -739,11 +739,12 @@ Double exponent(const Double& x)
 
 static Double lnop(const Double& x)
 {
-	if (x > Double_one || x <= -Double_one) throw Exceptions(_Not_In_Conv_Radius);
+	if (x > Double_one || x < -Double_one) throw Exceptions(_Not_In_Conv_Radius);
 	Double result = x;
 	Double term = x;
 	int i = 2;
-	while (abs(term) > pow(Double(Int(10)), (int)-30))
+	Double sz = pow(Double(Int(10)), -30);
+	while (abs(term) > sz)
 	{
 		term = term * (-x)*(Double(Int(i - 1)) / Double(Int(i)));
 		result = result + term;
@@ -754,7 +755,7 @@ static Double lnop(const Double& x)
 
 Double ln(const Double& x)
 {
-	if (x < Double_zero) throw Exceptions(_Math_Error);
+	if (x.val.sign == false || x.val.isZero()) throw Exceptions(_Math_Error);
 	Double u = (x - Double_one) / (x + Double_one);
 	return (lnop(u) - lnop(-u));
 }
@@ -786,7 +787,14 @@ Double ArcTan(const Double& x)
 	return ans;
 }
 
-Double sqrt(const Double& x)
+Double sqrt(const Double& x,bool HighPrec)
 {
-	return pow(x, Double(Int_one, (Int)2));
+	if (HighPrec)
+	{
+		return pow(x, Double(Int_one, (Int)2));
+	}
+	else
+	{
+		return pow(double(x), 0.5);
+	}
 }

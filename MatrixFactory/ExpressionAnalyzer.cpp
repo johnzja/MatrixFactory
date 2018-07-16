@@ -17,6 +17,11 @@ extern const Int Int_one;
 extern const fraction frc_zero;
 
 extern int QR(const Matrix& A, Matrix& Q, Matrix& R);
+extern int QR2(const Matrix &A, Matrix& Q, Matrix& R);
+extern Matrix Eig(const Matrix &A);
+extern int DiagonalizeRealSymmetricMatrix(const Matrix &A, Matrix&Q, Matrix&D);
+extern Dict EigV(const Matrix& A);
+
 
 
 #define DECIMAL_LENGTH 5
@@ -786,7 +791,6 @@ void CalculateOnce(stack<Math*>* stkopnd, stack<optrs>* stkoptr)
 
 Math* Func(const string& cmd, Math* data, bool& Error)
 {
-
 	data_type data_type;
 	if (data == nullptr)data_type = NULLS;else data_type = data->GetType();
 	Math* ans_ptr = nullptr;//Answer pointer.
@@ -845,6 +849,8 @@ Math* Func(const string& cmd, Math* data, bool& Error)
 			else if (cmd == "qr")
 			{
 				Matrix A = *dynamic_cast<Matrix*>(data);//Source
+				A.AbortPreciseCalculation();
+
 				if (A.GetColCnt() != A.GetRowCnt())throw Exceptions(_Matrix_Size_Error);
 				int n = A.GetColCnt();
 
@@ -853,13 +859,60 @@ Math* Func(const string& cmd, Math* data, bool& Error)
 
 				QR(A, *ptr_Q, *ptr_R);//Perform QR.
 	
+				Pair p[2];
+				strcpy(p[0].key, "Q"); p[0].value = ptr_Q;
+				strcpy(p[1].key, "R"); p[1].value = ptr_R;
+				ans_ptr = new Dict(2, p);
+			}
+			else if (cmd == "hqr")
+			{
+
+				Matrix A = *dynamic_cast<Matrix*>(data);//Source
+				A.AbortPreciseCalculation();
+				if (A.GetColCnt() != A.GetRowCnt())throw Exceptions(_Matrix_Size_Error);
+				int n = A.GetColCnt();
+
+				Matrix* ptr_Q = new Matrix(n, n);
+				Matrix* ptr_R = new Matrix(n, n);
+
+				QR2(A, *ptr_Q, *ptr_R);//Perform QR.
 
 				Pair p[2];
 				strcpy(p[0].key, "Q"); p[0].value = ptr_Q;
 				strcpy(p[1].key, "R"); p[1].value = ptr_R;
 				ans_ptr = new Dict(2, p);
 
+			}
+			else if (cmd == "eig")
+			{
+				dynamic_cast<Matrix*>(data)->AbortPreciseCalculation();
+				ans_ptr = new Matrix(Eig(*dynamic_cast<Matrix*>(data)));
+			}
+			else if (cmd == "diagonalize")
+			{
+				Matrix* ptr = dynamic_cast<Matrix*>(data);
+				ptr->AbortPreciseCalculation();
+				if (ptr->GetColCnt() != ptr->GetRowCnt())
+				{
+					throw Exceptions(_Matrix_Size_Error);
+				}
 
+				int n = ptr->GetColCnt();
+				Matrix* D = new Matrix(n, n);
+				Matrix* Q = new Matrix(n, n);
+
+				DiagonalizeRealSymmetricMatrix(*ptr, *Q, *D);
+
+				Pair p[2];
+				strcpy(p[0].key, "Q"); p[0].value = Q;
+				strcpy(p[1].key, "D"); p[1].value = D;
+				ans_ptr = new Dict(2, p);
+
+
+			}
+			else if (cmd == "eigv")//Eigenvectors.
+			{
+				ans_ptr = new Dict(EigV(*dynamic_cast<Matrix*>(data)));
 			}
 			//Customized functions
 			else

@@ -9,6 +9,8 @@ extern const char* _Matrix_Math_Error;
 
 extern const fraction frc_zero;
 
+#define PREC_EXP -14
+
 
 fraction InnerProduct(const Matrix &A, const Matrix &B) 
 {
@@ -21,8 +23,7 @@ fraction InnerProduct(const Matrix &A, const Matrix &B)
 fraction norm(const Matrix& A)
 {
 	if (A.GetColCnt() != 1) throw Exceptions(_Matrix_Size_Error);
-	
-	return fraction(sqrt(InnerProduct(A, A).GetValueD()));
+	return (sqrt(InnerProduct(A, A).GetValueD()));
 }
 
 Matrix SubMatrix(const Matrix &A, int row_p, int col_p) 
@@ -41,11 +42,11 @@ Matrix SubMatrix(const Matrix &A, int row_p, int col_p)
 Matrix setZero(const Matrix &M) 
 {
 	Matrix result = M;
-	for (int i = 0; i < M.GetRowCnt(); i++) 
+	for (int i = 0; i < M.GetRowCnt(); i++)
 	{
-		for (int j = 0; j < M.GetColCnt(); j++) 
+		for (int j = 0; j < M.GetColCnt(); j++)
 		{
-			if (abs(M(i, j).GetValue()) < 1e-6) result(i, j) = frc_zero;
+			if (M(i, j).GetValueD().GetExp() < PREC_EXP) result(i, j) = frc_zero;
 		}
 	}
 	return result;
@@ -58,7 +59,7 @@ bool isUpperTriangular(const Matrix& M)
 	{
 		for (int j = i + 1; j < M.GetRowCnt(); j++)
 		{
-			if (abs(M(j, i).GetValue()) > 1e-9) return false;
+			if (M(j, i).GetValueD().GetExp() > PREC_EXP) return false;
 		}
 	}
 	return true;
@@ -95,14 +96,15 @@ int QR2(const Matrix &A, Matrix& Q, Matrix& R)
 	if (A.GetColCnt() != R.GetColCnt() || A.GetRowCnt() != R.GetRowCnt()) throw Exceptions(_Matrix_Size_Error);
 	Q = Identity(A.GetRowCnt());
 	R = A;
-	for (int i = 0; i < A.GetRowCnt()-1; i++) {
+	for (int i = 0; i < A.GetRowCnt() - 1; i++)
+	{
 		Matrix v = (SubMatrix(R, i, i).GetColumn(0));
 		Matrix H(v.GetRowCnt(), v.GetRowCnt());
 		Matrix e1 = Identity(v.GetRowCnt()).GetColumn(0);
 		Matrix u = (v - (norm(v))*e1);
-		if(norm(u) != (fraction)0) u = (reciprocal(norm(u)))*u;
-		H = Identity(v.GetRowCnt()) - ((fraction)2*u*Transpose(u));
-		if(i>0) H = Identity(i) % H;
+		if (norm(u) != frc_zero) u = (reciprocal(norm(u)))*u;
+		H = Identity(v.GetRowCnt()) - ((fraction)2 * u*Transpose(u));
+		if (i > 0) H = Identity(i) % H;
 		R = H * R;
 		Q = Q * Transpose(H);
 	}
@@ -117,7 +119,7 @@ Matrix Eig(const Matrix &A)
 	Matrix R(A.GetRowCnt(), A.GetColCnt());
 	QR2(A, Q, R);
 	int iteration = 0;
-	while (!isUpperTriangular(R*Q) && iteration < 5000) 
+	while (!isUpperTriangular(R*Q) && iteration < 500) 
 	{
 		QR2(R*Q, Q, R);
 		iteration++;
@@ -136,11 +138,12 @@ int DiagonalizeRealSymmetricMatrix(const Matrix &A, Matrix&Q, Matrix&D)
 {
 	if (A != Transpose(A)) throw Exceptions(_Matrix_Math_Error);
 	if (D.GetRowCnt() != D.GetColCnt() || D.GetRowCnt() != A.GetRowCnt()) throw Exceptions(_Matrix_Size_Error);
+
 	Q = Identity(A.GetRowCnt());
 	Matrix Qtmp(A.GetRowCnt(), A.GetRowCnt());
 	QR2(A, Qtmp, D);
 	int iteration = 0;
-	while (!isUpperTriangular(D*Qtmp) && iteration < 5000)
+	while (!isUpperTriangular(D*Qtmp) && iteration < 500)
 	{
 		Q = Q * Qtmp;
 		QR2(D*Qtmp, Qtmp, D);
@@ -154,34 +157,46 @@ int DiagonalizeRealSymmetricMatrix(const Matrix &A, Matrix&Q, Matrix&D)
 			if (i != j) D(i, j) = frc_zero;
 		}
 	}
+	/*Test
 	cout << Qtmp << endl;
 	cout << D << endl;
 	cout << Q << endl;
+	*/
 
 	return 0;
 }
 
-void EigV(const Matrix& A)
+Dict EigV(const Matrix& A)
 {
 	if (A.GetColCnt() != A.GetRowCnt()) throw Exceptions(_Matrix_Size_Error);
 	else if (A.GetRowCnt() == 0) throw Exceptions(_Matrix_Size_Error);
+
 	Matrix eigList = Eig(A);
-	cout << eigList << endl;
+	Dict ans;
+
 	for (int i = 0; i < eigList.GetRowCnt(); i++)
 	{
 		Matrix C = A - (eigList(i, 0))*Identity(A.GetRowCnt());
 		if ((det(C).GetValue()) == 0.0)
 		{
-			cout << C << endl;
-			cout << NullSpace(C) << endl;
+			Math* ptr = new Matrix(NullSpace(C));
+			Pair p;
+			string str = "lambda";
+			char buf[4];
+			str += itoa(i, buf, 10);
+			strcpy_s(p.key, 20, str.c_str());
+			p.value = ptr;
+			ans.append(p);
 		}
 		else
 		{
 			C = adj(C);
-			C = (fraction)(pow(abs(det(C).GetValue()), (double)(-1.0 / C.GetRowCnt()))) * C;
-			cout << C << endl;
-			cout << det(C) << endl;
+			C = (fraction)(pow(abs(Gdet(C).GetValue()), (double)(-1.0 / C.GetRowCnt()))) * C;
+			//cout << C << endl;
+			//cout << det(C) << endl;
 			Matrix tempEigV = Identity(C.GetRowCnt());
+			tempEigV.AbortPreciseCalculation();
+
 			for (int i = 0; i < 10; i++)
 			{
 				tempEigV = C * tempEigV;
@@ -194,9 +209,18 @@ void EigV(const Matrix& A)
 				}
 
 			}
-			cout << tempEigV << endl;
+			//return  tempEigV;
+			Math* ptr = new Matrix(tempEigV);
+			Pair p;
+			string str = "lambda";
+			char buf[4];
+			str += itoa(i, buf, 10);
+			strcpy_s(p.key, 20, str.c_str());
+			p.value = ptr;
+			ans.append(p);
 		}
 	}
+	return ans;
 }
 
 /*

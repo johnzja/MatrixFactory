@@ -141,7 +141,7 @@ fraction& Matrix::operator()(int i, int j)const
 	return *(dynamic_cast<fraction*>(ptr[i]) + j);
 }
 
-ostream& operator<<(ostream& ostr, const Matrix& mat)
+ostream& operator<<(ostream& ostr, const Matrix& mat)//Need further investigation.
 {
 	int row = mat.GetRowCnt();
 	int col = mat.GetColCnt();

@@ -184,6 +184,8 @@ public:
 
 	friend Double pow(const Double& x, const Double& y);
 	friend Double pow(const Double& x, int y);
+	friend Double ln(const Double& x);
+
 
 	virtual ~Double(){}
 	virtual int GetLength()const;
@@ -226,7 +228,7 @@ Double exponent(const Double& x);
 Double lnop(const Double& x);
 Double ln(const Double& x);
 Double pow(const Double& x, const Double& y);
-Double sqrt(const Double& x);
+Double sqrt(const Double& x, bool HighPrec = false);
 
 
 
@@ -433,6 +435,11 @@ struct Pair
 class Dict :public Math//Dictionary.
 {
 public:
+	Dict()
+	{
+		//Empty dict.
+	}
+
 	Dict(int _length, Pair pair_arr[])
 	{
 		for (int i = 0;i < _length;i++)
@@ -443,6 +450,11 @@ public:
 
 	Dict(const Dict& _src);
 	Dict& operator=(const Dict& _src);
+
+	void append(const Pair& p)
+	{
+		vct_dict.push_back(p);
+	}
 
 	virtual ~Dict()
 	{
@@ -456,11 +468,18 @@ public:
 	virtual void print()const
 	{
 		size_t L = vct_dict.size();
-		for (size_t i = 0;i < L;i++)
+		if (L != 0)
 		{
-			cout << vct_dict[i].key << '=' << endl;
-			vct_dict[i].value->print();
-			cout << endl;
+			for (size_t i = 0;i < L;i++)
+			{
+				cout << vct_dict[i].key << '=' << endl;
+				vct_dict[i].value->print();
+				cout << endl;
+			}
+		}
+		else
+		{
+			cout << "Empty Dictionary." << endl;
 		}
 	}
 

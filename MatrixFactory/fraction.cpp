@@ -132,9 +132,17 @@ bool operator==(const fraction& a, const fraction & b)
 	fraction c = simplify(a);
 	fraction d = simplify(b);
 	if (c.isApprox == false && d.isApprox == false) return c.denominator == d.denominator && c.numerator == d.numerator;
-	else
+	else if (a.isApprox && !b.isApprox)
+	{
+		return (a.value == d.GetValueD());
+	}
+	else if(a.isApprox && b.isApprox)
 	{
 		return (a.value == b.value);
+	}
+	else//!a.isApprox && b.isApprox
+	{
+		return (c.GetValueD() == b.value);
 	}
 }
 
