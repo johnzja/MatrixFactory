@@ -270,6 +270,8 @@ public:
 		cout << *this << endl;
 	}
 
+	virtual int GetLength()const;
+
 
 	fraction& operator+=(const fraction& b);
 	fraction& operator-=(const fraction& b);

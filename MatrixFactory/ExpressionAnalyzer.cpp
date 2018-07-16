@@ -925,7 +925,7 @@ Math* Func(const string& cmd, Math* data, bool& Error)
 			break;
 
 
-		case NULLS:
+		case NULLS://data==null
 
 			if (cmd == "pi") { ans_ptr = new fraction(PI); }
 			else if (cmd == "e") { ans_ptr = new fraction(EULER_NUM); }//consts
@@ -933,6 +933,7 @@ Math* Func(const string& cmd, Math* data, bool& Error)
 			{
 				return DeepCopy(prev_ans);
 			}
+		
 			break;
 		}
 	}

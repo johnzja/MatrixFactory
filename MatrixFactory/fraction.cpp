@@ -347,3 +347,18 @@ ostream& operator<<(ostream& ost, const fraction& frac)
 	displayFrac(frac, false);
 	return ost;
 }
+
+int fraction::GetLength()const//For matrix display.
+{
+	if (!isApprox)//Precise.
+	{
+		int ans = numerator.GetLength() + denominator.GetLength() + 1;
+		if (numerator.sign == false)ans++;
+		return ans;
+	}
+	else//A Double. Will display 7 digits.
+	{
+		return 10;//Fail to display Double. Just convert it into double, and then display it.
+	}
+}
+

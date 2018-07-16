@@ -393,6 +393,7 @@ Double abs_add(const Double& a, const Double& b)
 	}
 	else
 	{
+		free(sum_ptr);
 		return Double_zero;
 	}
 }

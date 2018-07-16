@@ -116,7 +116,7 @@ Matrix& Matrix::operator=(const Matrix& mat)
 			row = mat.row; //copy normal data members
 			column = mat.column;
 
-			Math**temp = new Math*[row];    //复制指针指向的内容   
+			ptr = new Math*[row];    //Reallocate.
 			for (int i = 0;i < row;i++)
 			{
 				ptr[i] = (Math*)new fraction[column];
@@ -127,7 +127,6 @@ Matrix& Matrix::operator=(const Matrix& mat)
 				}
 			}
 
-			ptr = temp;   //建立新指向  
 		}
 	}
 	return *this;
@@ -137,22 +136,48 @@ fraction& Matrix::operator()(int i, int j)const
 {
 	LineValidity(this, true, i);
 	LineValidity(this, false, j);
-	//cout << dynamic_cast<fraction*>(ptr[i]) << endl;//What??!! protected inherit is dangerous
 	return *(dynamic_cast<fraction*>(ptr[i]) + j);
 }
 
 ostream& operator<<(ostream& ostr, const Matrix& mat)//Need further investigation.
 {
-	int row = mat.GetRowCnt();
-	int col = mat.GetColCnt();
-	for (int i = 0;i < row;i++)
+	try
 	{
-		ostr << '[';
-		for (int j = 0;j < col;j++)
+		int row = mat.GetRowCnt();
+		int col = mat.GetColCnt();
+		int space_resolved = 0;
+		for (int i = 0;i < row;i++)
 		{
-			ostr << mat(i, j) << "   ";
+			for (int j = 0;j < col;j++)
+			{
+				space_resolved = (space_resolved >= mat(i, j).GetLength()) ? space_resolved : mat(i, j).GetLength();
+			}
 		}
-		ostr << "  ]" << endl;
+		space_resolved += 3;
+
+		for (int i = 0;i < row;i++)
+		{
+			ostr << '[';
+			for (int j = 0;j < col;j++)
+			{
+				ostr.width(space_resolved);
+				fraction t = mat(i, j);
+				if (t.GetApprox())
+				{
+					ostr << t.GetValue();
+				}
+				else
+				{
+					ostr << t;
+				}
+			}
+			ostr << " ]" << endl;
+		}
+	}
+	catch (...)
+	{
+		cout << "Exceptions caught in Matrix operator<<." << endl;
+		throw;
 	}
 	return ostr;
 }
@@ -828,7 +853,6 @@ Matrix Matrix::EigenEqu()
 	}
 	return eigen_ans;
 }
-
 
 Matrix Identity(int n)
 {
