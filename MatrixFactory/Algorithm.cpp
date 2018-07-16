@@ -190,8 +190,10 @@ Dict EigV(const Matrix& A)
 		}
 		else
 		{
+			//Debugging.
 			C = adj(C);
-			C = (fraction)(pow(abs(Gdet(C).GetValue()), (double)(-1.0 / C.GetRowCnt()))) * C;
+
+			//C = (fraction)(pow(abs(Gdet(C).GetValue()), (double)(-1.0 / C.GetRowCnt()))) * C;
 			//cout << C << endl;
 			//cout << det(C) << endl;
 			Matrix tempEigV = Identity(C.GetRowCnt());
@@ -199,7 +201,7 @@ Dict EigV(const Matrix& A)
 
 			for (int i = 0; i < 10; i++)
 			{
-				tempEigV = C * tempEigV;
+				tempEigV = C * tempEigV;//Errors happen here. C* why>
 				for (int i = 0; i < tempEigV.GetRowCnt(); i++)
 				{
 					if (norm(tempEigV.GetColumn(i)).GetValue() >= 1e-12)

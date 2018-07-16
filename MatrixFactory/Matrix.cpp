@@ -164,7 +164,15 @@ ostream& operator<<(ostream& ostr, const Matrix& mat)//Need further investigatio
 				fraction t = mat(i, j);
 				if (t.GetApprox())
 				{
-					ostr << t.GetValue();
+					double v = t.GetValue();
+					if (abs(v) < precision)
+					{
+						ostr << 0;
+					}
+					else
+					{
+						ostr << v;
+					}
 				}
 				else
 				{
@@ -176,7 +184,6 @@ ostream& operator<<(ostream& ostr, const Matrix& mat)//Need further investigatio
 	}
 	catch (...)
 	{
-		cout << "Exceptions caught in Matrix operator<<." << endl;
 		throw;
 	}
 	return ostr;
@@ -621,11 +628,6 @@ Matrix GaussEliminate(const Matrix& mat, int* rankptr, SelectArray** sarray)
 
 static Matrix matmerge_row(const Matrix& mat1, const Matrix& mat2)
 {
-#ifdef DEBUGGING
-	assert(mat1.row == mat2.row);
-	mat1.ValidityCheck();
-	mat2.ValidityCheck();
-#endif
 	Matrix ans(mat1.row, mat1.column + mat2.column);
 	for (int i = 0;i < mat1.row;i++)
 	{

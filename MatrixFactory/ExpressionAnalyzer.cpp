@@ -22,8 +22,6 @@ extern Matrix Eig(const Matrix &A);
 extern int DiagonalizeRealSymmetricMatrix(const Matrix &A, Matrix&Q, Matrix&D);
 extern Dict EigV(const Matrix& A);
 
-
-
 #define DECIMAL_LENGTH 5
 using namespace std;
 
@@ -840,7 +838,7 @@ Math* Func(const string& cmd, Math* data, bool& Error)
 			else if (cmd == "ginverse" || cmd == "reciprocal")ans_ptr = new Matrix(Ginverse(*(dynamic_cast<Matrix*>(data))));
 			else if (cmd == "transpose" || cmd == "trn")ans_ptr = new Matrix(Transpose(*(dynamic_cast<Matrix*>(data))));
 			else if (cmd == "geliminate")ans_ptr = new Matrix(GaussEliminate(*(dynamic_cast<Matrix*>(data))));
-			else if (cmd == "r" || cmd == "rank")ans_ptr = new fraction((dynamic_cast<Matrix*>(data))->rank());
+			else if (cmd == "r" || cmd == "rank")ans_ptr = new fraction((dynamic_cast<Matrix*>(data))->rank(), 1);
 			else if (cmd == "eigenequ")ans_ptr = new Matrix((dynamic_cast<Matrix*>(data))->EigenEqu());
 			else if (cmd == "leftnullspace")ans_ptr = new Matrix(LeftNullSpace(*(dynamic_cast<Matrix*>(data))));
 			else if (cmd == "nullspace")ans_ptr = new Matrix(NullSpace(*(dynamic_cast<Matrix*>(data))));
