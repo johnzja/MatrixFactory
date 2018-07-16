@@ -8,9 +8,9 @@
 
 #include "stdafx.h"
 #include "ExpressionAnalyzer.h"
-#define _AUTHOR_pINFO "This is a matrix calculator, which greatly boosts your study progress of linear algebra. \n(It can help you do heaps of annoying calculations! )\nAny bugs? Please contact the programmer. Tel: 15801916963 ; \nE-mail: johnzja@qq.com\nDon`t forget to submit the log file generated while the program corrupts!\n"
-#define INVALID_MATNAME "Invalid Matrix Name!"
-#define ISOLATOR "--------------------------------------"
+#include "Output.h"
+#define _AUTHOR_pINFO "This is a matrix calculator, which greatly boosts your study progress of linear algebra. \n(It can help you do heaps of annoying calculations! )\n\n"
+//#define ISOLATOR "--------------------------------------"
 #define HELP_INFO "******HELP********\nBasic calculation syntax: 3(1+2) ;-pi ;sin(e^pi) ;1-2*3+4/5-6;etc\nMatrix definition: define A ; redefine A ; A(B+C) ; det(A*B) ; inverse(A+B) ;A^(-1) ;etc.\n"
 using namespace std;
 //Declare the external functions & constants.
@@ -22,18 +22,17 @@ extern const char* _Syntax_Error;
 extern const char* _Unknown_Mat_Error;
 extern const char* _Test_Debug_Error;
 
-
 //Function definition
 void defineMat(string& cmd,bool CheckValidity=true);
 void redefineMat(string& cmd);
 void help();
-void init();
 void ClearMemoryTank();
 void ShowMemoryTank();
 void Show_Lines();
 
 
-char Edition[] = "3.0.1";//Version information.
+
+char Edition[] = "3.0.4";//Version information.
 int Matrix::MatrixCount = 0;//Initialize static member in class Matrix.
 
 
@@ -71,7 +70,7 @@ int main()
 				ClearMemoryTank();
 				return 0;
 			}
-			else if (cmd == "help" || cmd == "f1") { help();cout << ISOLATOR << endl;continue; }
+			else if (cmd == "help" || cmd == "f1") { help();isolate();continue; }
 			else if (cmd == "cls")
 			{
 				system("cls");
@@ -98,19 +97,12 @@ int main()
 		}
 		(*Clear)(0, true);
 		last_cmd = cmd;
-		cout << ISOLATOR<< endl;
+		isolate();
 	}
 		
 	return 0;
 }
 
-void init()
-{
-	cout << "*********************" << "Matrix Factory" << "*********************" << endl;
-	cout << "Matrix Factory v" << Edition << endl;
-	cout << "Type help to get assistance." << endl;
-	return;
-}
 
 void defineMat(string& cmd,bool CheckValidity)
 {
@@ -172,7 +164,7 @@ void defineMat(string& cmd,bool CheckValidity)
 	}
 
 	cout << "Definition Complete!" << endl;
-	cout << ISOLATOR<< endl;
+	isolate();
 }
 
 void redefineMat(string& cmd)
@@ -243,7 +235,7 @@ void ClearMemoryTank()
 		matNameArr.pop_back();
 	}
 	cout << "ClearOperation successfully done." << endl;
-	cout << ISOLATOR << endl;
+	isolate();
 }
 
 void ShowMemoryTank()
@@ -255,7 +247,8 @@ void ShowMemoryTank()
 	{
 		cout << matNameArr[i] << "=" << endl;
 		matArr[i]->print();
-		cout << endl << ISOLATOR << endl;
+		cout << endl;
+		isolate();
 	}
 }
 //Test
@@ -263,4 +256,6 @@ void ShowMemoryTank()
 void Show_Lines()
 {
 	cout << 5049 << endl;
+	isolate();
 }
+

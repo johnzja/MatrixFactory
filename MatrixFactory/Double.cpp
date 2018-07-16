@@ -74,7 +74,11 @@ inline int min(int a, int b)
 //Constructor: assure that precision==val.rLength;
 Double::Double(double x,int prec):precision(prec),val(0,prec)
 {
-	if (abs(x) < 1e-15)
+	if (!(x == x) || x == INFINITY)
+	{
+		throw Exceptions(_Math_Error);
+	}
+	if (abs(x) < 1e-13)
 	{
 		exp = 0;
 		return;

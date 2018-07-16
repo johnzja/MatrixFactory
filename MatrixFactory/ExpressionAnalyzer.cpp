@@ -66,26 +66,37 @@ Math* _calculate(Math* a, Math* b, optrs optr)// a & b should be deleted?!
 
 				case  divide:
 					ans = new fraction((*dynamic_cast<Int*>(a)), (*dynamic_cast<Int*>(b))); break;
+
+				case power:
+					ans = new Int(pow(*dynamic_cast<Int*>(a), int(*dynamic_cast<Int*>(b)))); break;
 				}
 			}
 			else if (bType == FRC)//INT optr FRC
 			{
-				tmp = new fraction(*dynamic_cast<Int*>(a));// now tmp is  fraction*.
-				delete a;//Release the previous Int (converted into fraction.)
-				a = tmp;
-				switch (optr)
+				if (optr != power)
 				{
-				case add:
-					ans = new fraction(*(dynamic_cast<fraction*>(a)) + *dynamic_cast<fraction*>(b)); break;
+					tmp = new fraction(*dynamic_cast<Int*>(a));// now tmp is  fraction*.
+					delete a;//Release the previous Int (converted into fraction.)
+					a = tmp;
+					switch (optr)
+					{
+					case add:
+						ans = new fraction(*(dynamic_cast<fraction*>(a)) + *dynamic_cast<fraction*>(b)); break;
 
-				case subt:
-					ans = new fraction(*(dynamic_cast<fraction*>(a)) - *dynamic_cast<fraction*>(b)); break;
+					case subt:
+						ans = new fraction(*(dynamic_cast<fraction*>(a)) - *dynamic_cast<fraction*>(b)); break;
 
-				case mult:
-					ans = new fraction(*(dynamic_cast<fraction*>(a)) * (*dynamic_cast<fraction*>(b))); break;
+					case mult:
+						ans = new fraction(*(dynamic_cast<fraction*>(a)) * (*dynamic_cast<fraction*>(b))); break;
 
-				case divide:
-					ans = new fraction(*(dynamic_cast<fraction*>(a)) / (*dynamic_cast<fraction*>(b))); break;
+					case divide:
+						ans = new fraction(*(dynamic_cast<fraction*>(a)) / (*dynamic_cast<fraction*>(b))); break;
+
+					}
+				}
+				else//optr==power
+				{
+					ans = new Double(pow(Double((*dynamic_cast<Int*>(a)), Int_one), dynamic_cast<fraction*>(b)->GetValueD()));
 				}
 			}
 			else if (bType == DBL)//INT optr DBL
