@@ -458,6 +458,11 @@ public:
 		vct_dict.push_back(p);
 	}
 
+	vector<Pair>* GetVctPtr()
+	{
+		return &vct_dict;
+	}
+
 	virtual ~Dict()
 	{
 		size_t L = vct_dict.size();

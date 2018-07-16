@@ -1,11 +1,6 @@
 // ConsoleAppTest.cpp : 定义控制台应用程序的入口点。
 //
 
-//This program has 2473 lines of source code. Completed in about two weeks.
-//Designed by John Zhu, Tsinghua University.
-//User`s Brochure
-
-
 #include "stdafx.h"
 #include "ExpressionAnalyzer.h"
 #include "Output.h"
@@ -29,8 +24,6 @@ void help();
 void ClearMemoryTank();
 void ShowMemoryTank();
 void Show_Lines();
-
-
 
 char Edition[] = "3.0.4";//Version information.
 int Matrix::MatrixCount = 0;//Initialize static member in class Matrix.

@@ -944,6 +944,22 @@ Math* Func(const string& cmd, Math* data, bool& Error)
 			}
 		
 			break;
+
+		case DICT:
+			if (cmd == "push")
+			{
+				Dict* ptr = dynamic_cast<Dict*>(data);
+				size_t L = ptr->GetVctPtr()->size();
+				for (size_t i = 0;i < L;i++)
+				{
+					matArr.push_back(DeepCopy((*(ptr->GetVctPtr()))[i].value));
+					matNameArr.push_back((*(ptr->GetVctPtr()))[i].key);
+				}
+				ans_ptr = data;
+			}
+
+			break;
+
 		}
 	}
 	catch (...)
